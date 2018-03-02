@@ -27,11 +27,11 @@ public class GraphSettingsView extends LinearLayout {
     private class Builder {
         public void add(String title, View widget) {
             View v = mLayoutInflater.inflate(R.layout.element_graph_pref, mInstance, false);
-            TextView titleview = (TextView) v.findViewById(R.id.pref_title);
+            TextView titleview = v.findViewById(R.id.pref_title);
             titleview.setText(title);
             if (widget != null) {
                 widget.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-                FrameLayout frame = (FrameLayout) v.findViewById(R.id.frame);
+                FrameLayout frame = v.findViewById(R.id.frame);
                 frame.addView(widget);
             }
             v.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));

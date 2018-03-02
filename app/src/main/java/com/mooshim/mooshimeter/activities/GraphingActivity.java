@@ -4,7 +4,6 @@ import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Point;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.view.Display;
 import android.view.Gravity;
@@ -89,7 +88,6 @@ public class GraphingActivity extends BaseActivity implements GraphingActivityIn
     final static int maxNumberOfPoints = 10000;
     int maxNumberOfPointsOnScreen = 50;
     protected ChDispModes[] dispModes = new ChDispModes[]{ChDispModes.AUTO, ChDispModes.AUTO};
-    ;
     protected boolean autoScrollOn = true;
     protected boolean xyModeOn = false;
     protected boolean bufferModeOn = false;
@@ -167,8 +165,8 @@ public class GraphingActivity extends BaseActivity implements GraphingActivityIn
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_graphing);
-        mChart[0] = (LineChartView) findViewById(R.id.lineChart1);
-        mChart[1] = (LineChartView) findViewById(R.id.lineChart2);
+        mChart[0] = findViewById(R.id.lineChart1);
+        mChart[1] = findViewById(R.id.lineChart2);
         for (int i = 0; i < 2; i++) {
             mChart[i].setViewportCalculationEnabled(false);
             mChart[i].setMaxZoom((float) 1e6);
@@ -177,8 +175,8 @@ public class GraphingActivity extends BaseActivity implements GraphingActivityIn
             mChart[i].setZoomEnabled(false);
         }
 
-        mConfigButton = (Button) findViewById(R.id.config_btn);
-        mRefreshButton = (Button) findViewById(R.id.refresh_btn);
+        mConfigButton = findViewById(R.id.config_btn);
+        mRefreshButton = findViewById(R.id.refresh_btn);
         mRefreshButton.setVisibility(View.GONE);
 
         Intent intent = getIntent();
@@ -235,8 +233,8 @@ public class GraphingActivity extends BaseActivity implements GraphingActivityIn
         axisValueHelpers = new PointArrayWrapper[]{axisValueHelpers[0], axisValueHelpers[1]};
 
         // Labels below the charts
-        mChartLabel[0] = (TextView) findViewById(R.id.chart_label_1);
-        mChartLabel[1] = (TextView) findViewById(R.id.chart_label_2);
+        mChartLabel[0] = findViewById(R.id.chart_label_1);
+        mChartLabel[1] = findViewById(R.id.chart_label_2);
         for (int i = 0; i < 2; i++) {
             mChartLabel[i].setTextColor(mColorList[i]);
 
@@ -303,11 +301,6 @@ public class GraphingActivity extends BaseActivity implements GraphingActivityIn
                 }, 100, 1000);
             }
         });
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
     }
 
     /////////////////////////
@@ -443,7 +436,7 @@ public class GraphingActivity extends BaseActivity implements GraphingActivityIn
                     ViewGroup.LayoutParams.WRAP_CONTENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT);
             // Clear the default translucent background
-            mSettingsWindow.setBackgroundDrawable(new BitmapDrawable());
+            mSettingsWindow.setBackgroundDrawable(null);
             mSettingsWindow.showAtLocation(base, Gravity.CENTER, 0, 0);
         }
     }

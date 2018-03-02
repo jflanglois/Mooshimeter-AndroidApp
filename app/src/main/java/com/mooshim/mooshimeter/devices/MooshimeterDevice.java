@@ -523,14 +523,14 @@ public class MooshimeterDevice extends MooshimeterDeviceBase {
             @Override
             public void onReceived(double timestamp_utc, Object payload) {
                 int i = (Integer) payload;
-                delegate.onRangeChange(Channel.CH1, (RangeDescriptor) getSelectedDescriptor(Channel.CH1).ranges.get(i));
+                delegate.onRangeChange(Channel.CH1, getSelectedDescriptor(Channel.CH1).ranges.get(i));
             }
         });
         attachCallback("CH2:RANGE_I", new NotifyHandler() {
             @Override
             public void onReceived(double timestamp_utc, Object payload) {
                 int i = (Integer) payload;
-                delegate.onRangeChange(Channel.CH2, (RangeDescriptor) getSelectedDescriptor(Channel.CH2).ranges.get(i));
+                delegate.onRangeChange(Channel.CH2, getSelectedDescriptor(Channel.CH2).ranges.get(i));
             }
         });
         attachCallback("SAMPLING:RATE", new NotifyHandler() {

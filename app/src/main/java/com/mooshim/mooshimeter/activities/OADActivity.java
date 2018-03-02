@@ -138,19 +138,19 @@ public class OADActivity extends BaseActivity {
         setContentView(R.layout.activity_oad);
 
         // Icon padding
-        ImageView view = (ImageView) findViewById(android.R.id.home);
+        ImageView view = findViewById(android.R.id.home);
         view.setPadding(10, 0, 20, 10);
 
         // Context title
         setTitle(R.string.title_oad);
 
         // Initialize widgets
-        mProgressInfo = (TextView) findViewById(R.id.tw_info);
-        mFileImage = (TextView) findViewById(R.id.tw_file);
-        mLog = (TextView) findViewById(R.id.tw_log);
-        mProgressBar = (ProgressBar) findViewById(R.id.pb_progress);
-        mBtnStart = (Button) findViewById(R.id.btn_start);
-        mLegacyMode = (CheckBox) findViewById(R.id.legacy_mode_checkbox);
+        mProgressInfo = findViewById(R.id.tw_info);
+        mFileImage = findViewById(R.id.tw_file);
+        mLog = findViewById(R.id.tw_log);
+        mProgressBar = findViewById(R.id.pb_progress);
+        mBtnStart = findViewById(R.id.btn_start);
+        mLegacyMode = findViewById(R.id.legacy_mode_checkbox);
 
         mLogScroller = new ScrollingMovementMethod();
         mLog.setMovementMethod(mLogScroller);
@@ -228,16 +228,6 @@ public class OADActivity extends BaseActivity {
         } else {
             unpackFirmwareFileBuffer();
         }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
     }
 
     Semaphore blockPacer;

@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -33,16 +32,16 @@ public class GlobalPreferencesActivity extends BaseActivity {
         LinearLayout base;
 
         public PreferenceGUIBuilder() {
-            base = (LinearLayout) findViewById(R.id.preference_background_layout);
+            base = findViewById(R.id.preference_background_layout);
         }
 
         public void add(String title, String descr, View widget) {
             View v = getLayoutInflater().inflate(R.layout.element_pref_descriptor, null, false);
-            TextView titleview = (TextView) v.findViewById(R.id.pref_title);
-            TextView descrview = (TextView) v.findViewById(R.id.pref_descr);
+            TextView titleview = v.findViewById(R.id.pref_title);
+            TextView descrview = v.findViewById(R.id.pref_descr);
             titleview.setText(title);
             descrview.setText(descr);
-            FrameLayout frame = (FrameLayout) v.findViewById(R.id.frame);
+            FrameLayout frame = v.findViewById(R.id.frame);
             if (widget != null) {
                 widget.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
                 frame.addView(widget);
@@ -138,31 +137,6 @@ public class GlobalPreferencesActivity extends BaseActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         onBackPressed();
         return true;
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
     }
 
     private void setError(final String txt) {

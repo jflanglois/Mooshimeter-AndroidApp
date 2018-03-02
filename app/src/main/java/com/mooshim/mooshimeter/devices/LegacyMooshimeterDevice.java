@@ -1522,8 +1522,6 @@ public class LegacyMooshimeterDevice extends MooshimeterDeviceBase {
         END_OF_FILE,
     }
 
-    ;
-
     @Override
     public String getLoggingStatusMessage() {
         return LogCodes.values()[meter_log_settings.logging_error].toString();

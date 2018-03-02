@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -381,7 +382,7 @@ public class ConfigTree {
                             break;
                         case ConfigTree.NTYPE.VAL_U32:
                         case ConfigTree.NTYPE.VAL_S32:
-                            n.notify(timestamp_utc, (int) b.getInt());
+                            n.notify(timestamp_utc, b.getInt());
                             break;
                         case ConfigTree.NTYPE.VAL_STR:
                             expecting_bytes = b.getShort();
@@ -531,13 +532,9 @@ public class ConfigTree {
 
     public ConfigTree() {
         // Always assume a tree starts with this configuration
-        root = new ConfigNode(this, NTYPE.PLAIN, "", Arrays.asList(new ConfigNode[]{
-                new ConfigNode(this, NTYPE.PLAIN, "ADMIN", Arrays.asList(new ConfigNode[]{
-                        new ConfigNode(this, NTYPE.VAL_U32, "CRC32", null),
-                        new ConfigNode(this, NTYPE.VAL_BIN, "TREE", null),
-                        new ConfigNode(this, NTYPE.VAL_STR, "DIAGNOSTIC", null),
-                })),
-        }));
+        root = new ConfigNode(this, NTYPE.PLAIN, "", Collections.singletonList(new ConfigNode(this, NTYPE.PLAIN, "ADMIN", Arrays.asList(new ConfigNode(this, NTYPE.VAL_U32, "CRC32", null),
+                new ConfigNode(this, NTYPE.VAL_BIN, "TREE", null),
+                new ConfigNode(this, NTYPE.VAL_STR, "DIAGNOSTIC", null)))));
         assignShortCodes();
         code_list = getShortCodeMap();
 

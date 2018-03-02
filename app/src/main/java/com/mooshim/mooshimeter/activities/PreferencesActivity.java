@@ -2,7 +2,6 @@ package com.mooshim.mooshimeter.activities;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -38,18 +37,18 @@ public class PreferencesActivity extends BaseActivity {
         LinearLayout base;
 
         public PreferenceGUIBuilder() {
-            base = (LinearLayout) findViewById(R.id.preference_background_layout);
+            base = findViewById(R.id.preference_background_layout);
         }
 
         public void add(String title, String descr, View widget) {
             View v = getLayoutInflater().inflate(R.layout.element_pref_descriptor, null, false);
-            TextView titleview = (TextView) v.findViewById(R.id.pref_title);
-            TextView descrview = (TextView) v.findViewById(R.id.pref_descr);
+            TextView titleview = v.findViewById(R.id.pref_title);
+            TextView descrview = v.findViewById(R.id.pref_descr);
             titleview.setText(title);
             descrview.setText(descr);
             if (widget != null) {
                 widget.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-                FrameLayout frame = (FrameLayout) v.findViewById(R.id.frame);
+                FrameLayout frame = v.findViewById(R.id.frame);
                 frame.addView(widget);
             }
             v.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -185,11 +184,6 @@ public class PreferencesActivity extends BaseActivity {
                 mMeter.removeDelegate();
             });
         }
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
     }
 
     private void setError(final String txt) {

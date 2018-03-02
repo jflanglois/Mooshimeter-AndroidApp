@@ -2,7 +2,6 @@ package com.mooshim.mooshimeter.activities;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.databinding.DataBindingUtil;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -206,11 +205,6 @@ public class DeviceActivity extends BaseActivity implements MooshimeterDelegate 
         }
     }
 
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-    }
-
     private void setError(final String txt) {
         final Context c = this;
         runOnUiThread(() -> Toast.makeText(c, txt, Toast.LENGTH_LONG).show());
@@ -225,7 +219,6 @@ public class DeviceActivity extends BaseActivity implements MooshimeterDelegate 
             rateButtonRefresh();
             depthButtonRefresh();
             loggingButtonRefresh();
-            graphButtonRefresh();
             for (int c = 0; c < 2; c++) {
                 inputSetButtonRefresh(c);
                 rangeButtonRefresh(c);
@@ -294,9 +287,6 @@ public class DeviceActivity extends BaseActivity implements MooshimeterDelegate 
 
     private void mathButtonRefresh() {
         mathLabelRefresh(mMeter.getValue(MooshimeterControlInterface.Channel.MATH));
-    }
-
-    private void graphButtonRefresh() {
     }
 
     private void rateButtonRefresh() {

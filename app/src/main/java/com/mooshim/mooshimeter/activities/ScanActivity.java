@@ -97,9 +97,9 @@ public class ScanActivity extends BaseActivity {
 
         setContentView(R.layout.fragment_scan);
         // Initialize widgets
-        mStatus = (TextView) findViewById(R.id.status);
-        mBtnScan = (Button) findViewById(R.id.btn_scan);
-        mDeviceScrollView = (LinearLayout) findViewById(R.id.device_list);
+        mStatus = findViewById(R.id.status);
+        mBtnScan = findViewById(R.id.btn_scan);
+        mDeviceScrollView = findViewById(R.id.device_list);
 
         mDeviceScrollView.setClickable(true);
 
@@ -332,7 +332,7 @@ public class ScanActivity extends BaseActivity {
         descr.append("\nRssi: " + rssi + " dBm");
         ((TextView) wrapper.findViewById(R.id.descr)).setText(descr, TextView.BufferType.SPANNABLE);
 
-        final Button bv = (Button) wrapper.findViewById(R.id.btnConnect);
+        final Button bv = wrapper.findViewById(R.id.btnConnect);
 
         int bgid = d.isConnected() ? R.drawable.connected : R.drawable.disconnected;
         bv.setBackground(getResources().getDrawable(bgid));
@@ -483,7 +483,7 @@ public class ScanActivity extends BaseActivity {
             new Exception().printStackTrace();
             return;
         }
-        final Button bv = (Button) vg.findViewById(R.id.btnConnect);
+        final Button bv = vg.findViewById(R.id.btnConnect);
         runOnUiThread(() -> {
             bv.setEnabled(false);
             bv.setAlpha((float) 0.5);
