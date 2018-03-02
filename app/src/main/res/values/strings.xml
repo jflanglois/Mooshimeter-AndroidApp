@@ -62,5 +62,7 @@
     <string name="clear_points">Clear Points</string>
     <string name="auto_scaling">Automatic scaling</string>
     <string name="man_scaling">Manual scaling</string>
+    <string name="rate_hz">%dHz</string>
+    <string name="depth_sample">%dsmpl</string>
 
 </resources>

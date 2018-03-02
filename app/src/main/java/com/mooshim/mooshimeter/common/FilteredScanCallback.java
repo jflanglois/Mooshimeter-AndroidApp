@@ -4,7 +4,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
-import com.mooshim.mooshimeter.activities.MyActivity;
+import com.mooshim.mooshimeter.activities.BaseActivity;
 import com.mooshim.mooshimeter.devices.BLEDeviceBase;
 import com.mooshim.mooshimeter.devices.PeripheralWrapper;
 
@@ -83,11 +83,11 @@ public abstract class FilteredScanCallback implements BluetoothAdapter.LeScanCal
         }
 
         if(is_meter) {
-            BLEDeviceBase m = MyActivity.getDeviceWithAddress(device.getAddress());
+            BLEDeviceBase m = BaseActivity.getDeviceWithAddress(device.getAddress());
             if(m==null) {
                 PeripheralWrapper p = new PeripheralWrapper(device, Util.getRootContext());
                 m = new BLEDeviceBase(p);
-                MyActivity.putDevice(m);
+                BaseActivity.putDevice(m);
             }
             m.setRSSI(rssi);
             m.mOADMode = oad_mode;

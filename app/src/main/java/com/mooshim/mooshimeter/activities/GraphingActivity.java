@@ -40,7 +40,7 @@ import lecho.lib.hellocharts.model.PointValue;
 import lecho.lib.hellocharts.model.Viewport;
 import lecho.lib.hellocharts.view.LineChartView;
 
-public class GraphingActivity extends MyActivity implements GraphingActivityInterface, MooshimeterDelegate {
+public class GraphingActivity extends BaseActivity implements GraphingActivityInterface, MooshimeterDelegate {
 
     ///////////////////////
     // STATICS

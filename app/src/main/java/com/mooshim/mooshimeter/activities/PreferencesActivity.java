@@ -4,9 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
@@ -29,7 +26,7 @@ import com.mooshim.mooshimeter.common.Util;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class PreferencesActivity extends MyActivity {
+public class PreferencesActivity extends BaseActivity {
     private static final String TAG = "PreferenceActivity";
 
     private Context mContext;

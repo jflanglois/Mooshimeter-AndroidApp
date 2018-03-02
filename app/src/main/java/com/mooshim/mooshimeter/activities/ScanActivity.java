@@ -54,10 +54,9 @@ import com.mooshim.mooshimeter.devices.PeripheralWrapper;
 import com.mooshim.mooshimeter.common.Util;
 import com.mooshim.mooshimeter.common.FilteredScanCallback;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class ScanActivity extends MyActivity {
+public class ScanActivity extends BaseActivity {
     // Defines
     private static String TAG = "ScanActivity";
     private static final int REQ_ENABLE_BT = 0;

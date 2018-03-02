@@ -71,8 +71,6 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.crashlytics.android.answers.Answers;
-import com.crashlytics.android.answers.CustomEvent;
 import com.mooshim.mooshimeter.R;
 import com.mooshim.mooshimeter.common.FilteredScanCallback;
 import com.mooshim.mooshimeter.common.FirmwareFile;
@@ -86,7 +84,7 @@ import com.mooshim.mooshimeter.common.Util;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class OADActivity extends MyActivity {
+public class OADActivity extends BaseActivity {
     // Activity
     private static final int FILE_BUFFER_SIZE = 0x40000;
     private static final int HAL_FLASH_WORD_SIZE = 4;
@@ -292,7 +290,7 @@ public class OADActivity extends MyActivity {
         scan_cb.mylock = mylock;
         BLEDeviceBase rval = null;
 
-        MyActivity.clearDeviceCache();
+        BaseActivity.clearDeviceCache();
 
         do {
             if (!bluetoothAdapter.startLeScan(scan_cb)) {

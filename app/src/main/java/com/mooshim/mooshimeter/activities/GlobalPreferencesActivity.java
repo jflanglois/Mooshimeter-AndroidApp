@@ -23,7 +23,7 @@ import android.widget.Toast;
 import com.mooshim.mooshimeter.R;
 import com.mooshim.mooshimeter.common.Util;
 
-public class GlobalPreferencesActivity extends MyActivity {
+public class GlobalPreferencesActivity extends BaseActivity {
     private static final String TAG = "GPreferenceActivity";
 
     private Context mContext;

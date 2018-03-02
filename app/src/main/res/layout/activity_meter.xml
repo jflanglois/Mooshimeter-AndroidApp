@@ -1,298 +1,342 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<layout>
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <Button
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:text="CH1 LABEL"
-            android:id="@+id/ch1_input_set_button"
-            android:layout_weight="2"
-            android:onClick="onCh1InputSetClick"
-            style="@style/AppBaseTheme"
-            android:textSize="24dp"
-            android:background="@drawable/button_normal"
-            android:layout_gravity="center"
-            android:layout_margin="0px" android:paddingLeft="10dp" android:paddingRight="10dp"/>
-        <Button
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:text="AUTO\nRANGE"
-            android:id="@+id/ch1_range_button"
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:onClick="onCh1RangeClick"
-            style="@style/AppBaseTheme"
-            android:textSize="16dp"
-            android:background="@drawable/button_auto"
-            android:layout_gravity="center"
-            android:layout_margin="0px"
-            android:gravity="center_horizontal|top" android:paddingLeft="10dp"
-            android:paddingRight="10dp"/>
+            android:orientation="horizontal">
 
-    </LinearLayout>
+            <Button
+                android:id="@+id/ch1_input_set_button"
+                style="@style/AppBaseTheme"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_margin="0px"
+                android:layout_weight="2"
+                android:autoSizeTextType="uniform"
+                android:background="@drawable/button_normal"
+                android:onClick="onCh1InputSetClick"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="CH1 LABEL"
+                android:textSize="24dp" />
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="0dp"
-        android:layout_weight="2">
+            <Button
+                android:id="@+id/ch1_range_button"
+                style="@style/AppBaseTheme"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_margin="0px"
+                android:layout_weight="1"
+                android:background="@drawable/button_auto"
+                android:gravity="center_horizontal|top"
+                android:onClick="onCh1RangeClick"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="AUTO\nRANGE"
+                android:textSize="16dp" />
 
-        <TextView
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="2"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/ch1_value_label"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="2.36"
+                android:autoSizeTextType="uniform"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="LOADING"
+                android:textAlignment="center"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textIsSelectable="false"
+                android:textSize="74dp"
+                android:typeface="monospace" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/ch1_zero_button"
+                style="@style/AppBaseTheme"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_margin="0px"
+                android:layout_weight="1"
+                android:autoSizeTextType="uniform"
+                android:background="@drawable/button_normal"
+                android:onClick="onCh1ZeroClick"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="ZERO"
+                android:textSize="24dp" />
+
+            <Button
+                android:id="@+id/ch1_sound_button"
+                style="@style/AppBaseTheme"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_margin="0px"
+                android:layout_weight="1"
+                android:autoSizeTextType="uniform"
+                android:background="@drawable/button_normal"
+                android:onClick="onCh1SoundClick"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="SOUND"
+                android:textSize="24dp" />
+        </LinearLayout>
+
+        <Space
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="LOADING"
-            android:id="@+id/ch1_value_label"
-            android:textSize="74dp"
-            android:layout_weight="2.36"
-            android:textAlignment="center"
-            android:typeface="monospace"
-            android:textIsSelectable="false" android:paddingLeft="10dp"
-            android:paddingRight="10dp"/>
-    </LinearLayout>
+            android:layout_height="20px"
+            android:background="#ff000000" />
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-
-        <Button
-            style="@style/AppBaseTheme"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:text="ZERO"
-            android:id="@+id/ch1_zero_button"
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:onClick="onCh1ZeroClick"
-            android:textSize="24dp"
-            android:background="@drawable/button_normal"
-            android:layout_gravity="center"
-            android:layout_margin="0px" android:paddingLeft="10dp" android:paddingRight="10dp"/>
+            android:orientation="horizontal">
 
-        <Button
-            style="@style/AppBaseTheme"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:text="SOUND"
-            android:id="@+id/ch1_sound_button"
-            android:layout_weight="1"
-            android:onClick="onCh1SoundClick"
-            android:textSize="24dp"
-            android:background="@drawable/button_normal"
-            android:layout_gravity="center"
-            android:layout_margin="0px" android:paddingLeft="10dp" android:paddingRight="10dp"/>
-    </LinearLayout>
+            <Button
+                android:id="@+id/ch2_input_set_button"
+                style="@style/AppBaseTheme"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_margin="0px"
+                android:layout_weight="2"
+                android:autoSizeTextType="uniform"
+                android:background="@drawable/button_normal"
+                android:onClick="onCh2InputSetClick"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="CH2 LABEL"
+                android:textSize="24dp" />
 
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="20px"
-        android:background="#ff000000" />
+            <Button
+                android:id="@+id/ch2_range_button"
+                style="@style/AppBaseTheme"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_margin="0px"
+                android:layout_weight="1"
+                android:background="@drawable/button_auto"
+                android:gravity="center_horizontal|top"
+                android:onClick="onCh2RangeClick"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="RANGE"
+                android:textSize="16dp" />
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+        </LinearLayout>
 
-        <Button
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:text="CH2 LABEL"
-            android:id="@+id/ch2_input_set_button"
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
             android:layout_weight="2"
-            android:onClick="onCh2InputSetClick"
-            style="@style/AppBaseTheme"
-            android:textSize="24dp"
-            android:background="@drawable/button_normal"
-            android:layout_gravity="center"
-            android:layout_margin="0px" android:paddingLeft="10dp" android:paddingRight="10dp"/>
+            android:orientation="horizontal">
 
-        <Button
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:text="RANGE"
-            android:id="@+id/ch2_range_button"
+            <TextView
+                android:id="@+id/ch2_value_label"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="2.36"
+                android:autoSizeTextType="uniform"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="LOADING"
+                android:textAlignment="center"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textIsSelectable="false"
+                android:textSize="74dp"
+                android:typeface="monospace" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:onClick="onCh2RangeClick"
-            style="@style/AppBaseTheme"
-            android:textSize="16dp"
-            android:background="@drawable/button_auto"
-            android:layout_gravity="center"
-            android:layout_margin="0px"
-            android:gravity="center_horizontal|top" android:paddingLeft="10dp"
-            android:paddingRight="10dp"/>
+            android:orientation="horizontal">
 
-    </LinearLayout>
+            <Button
+                android:id="@+id/ch2_zero_button"
+                style="@style/AppBaseTheme"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_margin="0px"
+                android:layout_weight="1"
+                android:autoSizeTextType="uniform"
+                android:background="@drawable/button_normal"
+                android:onClick="onCh2ZeroClick"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="ZERO"
+                android:textSize="24dp" />
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="0dp"
-        android:layout_weight="2">
+            <Button
+                android:id="@+id/ch2_sound_button"
+                style="@style/AppBaseTheme"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_margin="0px"
+                android:layout_weight="1"
+                android:autoSizeTextType="uniform"
+                android:background="@drawable/button_normal"
+                android:onClick="onCh2SoundClick"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="SOUND"
+                android:textSize="24dp" />
+        </LinearLayout>
 
-        <TextView
+        <Space
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="LOADING"
-            android:id="@+id/ch2_value_label"
-            android:textSize="74dp"
-            android:layout_weight="2.36"
-            android:textAlignment="center"
-            android:typeface="monospace"
-            android:textIsSelectable="false" android:paddingLeft="10dp"
-            android:paddingRight="10dp"/>
-    </LinearLayout>
+            android:layout_height="20px"
+            android:background="#ff000000" />
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-
-        <Button
-            style="@style/AppBaseTheme"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:text="ZERO"
-            android:id="@+id/ch2_zero_button"
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:onClick="onCh2ZeroClick"
-            android:textSize="24dp"
-            android:background="@drawable/button_normal"
-            android:layout_gravity="center"
-            android:layout_margin="0px" android:paddingLeft="10dp" android:paddingRight="10dp"/>
+            android:orientation="horizontal">
 
-        <Button
-            style="@style/AppBaseTheme"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:text="SOUND"
-            android:id="@+id/ch2_sound_button"
+            <TextView
+                android:id="@+id/power_label"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:autoSizeTextType="uniform"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="N/A"
+                android:textAlignment="center"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textIsSelectable="false"
+                android:textSize="36dp"
+                android:typeface="monospace" />
+
+            <Button
+                android:id="@+id/power_button"
+                style="@style/AppBaseTheme"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_margin="0px"
+                android:layout_weight="1"
+                android:autoSizeTextType="uniform"
+                android:background="@drawable/button_normal"
+                android:onClick="onPowerButtonClick"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="W"
+                android:textSize="24dp" />
+        </LinearLayout>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="20px"
+            android:background="#ff000000" />
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:onClick="onCh2SoundClick"
-            android:textSize="24dp"
-            android:background="@drawable/button_normal"
-            android:layout_gravity="center"
-            android:layout_margin="0px" android:paddingLeft="10dp" android:paddingRight="10dp"/>
-    </LinearLayout>
+            android:orientation="horizontal">
 
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="20px"
-        android:background="#ff000000" />
+            <Button
+                android:id="@+id/rate_button"
+                style="@style/AppBaseTheme"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_margin="0px"
+                android:layout_weight="2"
+                android:background="@drawable/button_auto"
+                android:gravity="center_horizontal|top"
+                android:onClick="onRateClick"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="125Hz"
+                android:textSize="16dp" />
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+            <Button
+                android:id="@+id/depth_button"
+                style="@style/AppBaseTheme"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_margin="0px"
+                android:layout_weight="2"
+                android:background="@drawable/button_auto"
+                android:gravity="center_horizontal|top"
+                android:onClick="onDepthClick"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="32smpl"
+                android:textSize="16dp" />
+        </LinearLayout>
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="N/A"
-            android:id="@+id/power_label"
-            android:textSize="36dp"
-            android:layout_weight="2"
-            android:textAlignment="center"
-            android:typeface="monospace"
-            android:textIsSelectable="false" android:paddingLeft="10dp"
-            android:paddingRight="10dp"/>
-        <Button
-            style="@style/AppBaseTheme"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:text="W"
-            android:id="@+id/power_button"
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:onClick="onPowerButtonClick"
-            android:textSize="24dp"
-            android:background="@drawable/button_normal"
-            android:layout_gravity="center"
-            android:layout_margin="0px" android:paddingLeft="10dp" android:paddingRight="10dp"/>
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/log_button"
+                style="@style/AppBaseTheme"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_margin="0px"
+                android:layout_weight="2"
+                android:autoSizeTextType="uniform"
+                android:background="@drawable/button_auto"
+                android:onClick="onLoggingClick"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="LOGGING:OFF"
+                android:textSize="24dp" />
+
+            <Button
+                android:id="@+id/graph_button"
+                style="@style/AppBaseTheme"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_margin="0px"
+                android:layout_weight="2"
+                android:autoSizeTextType="uniform"
+                android:background="@drawable/button_normal"
+                android:onClick="onGraphClick"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="GRAPH"
+                android:textSize="24dp" />
+        </LinearLayout>
     </LinearLayout>
-
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="20px"
-        android:background="#ff000000"/>
-
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-
-        <Button
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:text="125Hz"
-            android:id="@+id/rate_button"
-            android:layout_weight="2"
-            android:onClick="onRateClick"
-            style="@style/AppBaseTheme"
-            android:textSize="16dp"
-            android:background="@drawable/button_auto"
-            android:layout_gravity="center"
-            android:layout_margin="0px"
-            android:gravity="center_horizontal|top" android:paddingLeft="10dp"
-            android:paddingRight="10dp"/>
-
-        <Button
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:text="32smpl"
-            android:id="@+id/depth_button"
-            android:layout_weight="2"
-            android:onClick="onDepthClick"
-            style="@style/AppBaseTheme"
-            android:textSize="16dp"
-            android:background="@drawable/button_auto"
-            android:layout_gravity="center"
-            android:layout_margin="0px"
-            android:gravity="center_horizontal|top" android:paddingLeft="10dp"
-            android:paddingRight="10dp"/>
-    </LinearLayout>
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-
-        <Button
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:text="LOGGING:OFF"
-            android:id="@+id/log_button"
-            android:layout_weight="2"
-            android:onClick="onLoggingClick"
-            style="@style/AppBaseTheme"
-            android:textSize="24dp"
-            android:background="@drawable/button_auto"
-            android:layout_gravity="center"
-            android:layout_margin="0px" android:paddingLeft="10dp" android:paddingRight="10dp"/>
-
-        <Button
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:text="GRAPH"
-            android:id="@+id/graph_button"
-            android:layout_weight="2"
-            android:onClick="onGraphClick"
-            style="@style/AppBaseTheme"
-            android:textSize="24dp"
-            android:background="@drawable/button_normal"
-            android:layout_gravity="center"
-            android:layout_margin="0px" android:paddingLeft="10dp" android:paddingRight="10dp"/>
-    </LinearLayout>
-</LinearLayout>
+</layout>

@@ -3,6 +3,7 @@ package com.mooshim.mooshimeter.activities;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
 import com.mooshim.mooshimeter.devices.BLEDeviceBase;
@@ -15,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by First on 12/4/2015.
  */
-public abstract class MyActivity extends Activity {
+public abstract class BaseActivity extends AppCompatActivity {
     // This is the master list of all Mooshimeters
     private static final Map<String,BLEDeviceBase> mMeterDict = new ConcurrentHashMap<>();
 
