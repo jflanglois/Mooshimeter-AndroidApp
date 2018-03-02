@@ -1,6 +1,5 @@
 package com.mooshim.mooshimeter.common;
 
-import android.content.Context;
 import android.content.Intent;
 
 /**
@@ -15,12 +14,11 @@ public class BroadcastIntentData {
         //  Build the intent and broadcast it
         Intent intent = new Intent();
         intent.setAction("com.mooshim.mooshimeter.SAMPLE_INTENT");
-        intent.putExtra("units",val.units); // key, value pair
-        intent.putExtra("value",val.value);
+        intent.putExtra("units", val.units); // key, value pair
+        intent.putExtra("value", val.value);
         try {
             Util.getRootContext().sendBroadcast(intent);  // context must come from an activity or MyApplication
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             // placeholder
         }
     }

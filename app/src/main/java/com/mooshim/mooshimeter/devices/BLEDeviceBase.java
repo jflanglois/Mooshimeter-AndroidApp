@@ -23,11 +23,12 @@ package com.mooshim.mooshimeter.devices;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.util.Log;
 
 import com.mooshim.mooshimeter.common.Util;
 
 import java.util.UUID;
+
+import timber.log.Timber;
 
 import static java.util.UUID.fromString;
 
@@ -35,7 +36,7 @@ public class BLEDeviceBase {
     ////////////////////////////////
     // Statics
     ////////////////////////////////
-    private static final String TAG="BLEDevice";
+    private static final String TAG = "BLEDevice";
     /*
     mUUID stores the UUID values of all the Mooshimeter fields.
     Note that the OAD fields are only accessible when connected to the Mooshimeter in OAD mode
@@ -43,10 +44,12 @@ public class BLEDeviceBase {
      */
 
     public static final class mServiceUUIDs {
-        private mServiceUUIDs() {}
+        private mServiceUUIDs() {
+        }
+
         public final static UUID
-        METER_SERVICE      = fromString("1BC5FFA0-0200-62AB-E411-F254E005DBD4"),
-        OAD_SERVICE_UUID   = fromString("1BC5FFC0-0200-62AB-E411-F254E005DBD4");
+                METER_SERVICE = fromString("1BC5FFA0-0200-62AB-E411-F254E005DBD4"),
+                OAD_SERVICE_UUID = fromString("1BC5FFC0-0200-62AB-E411-F254E005DBD4");
     }
 
     // Used so the inner classes have something to grab
@@ -54,9 +57,9 @@ public class BLEDeviceBase {
     public PeripheralWrapper mPwrap;
     protected Runnable rssi_cb = null;
 
-    public int              mBuildTime;
-    public boolean          mOADMode;
-    public boolean          mInitialized = false;
+    public int mBuildTime;
+    public boolean mOADMode;
+    public boolean mInitialized = false;
 
     public BLEDeviceBase(PeripheralWrapper wrap) {
         mPwrap = wrap;
@@ -70,11 +73,11 @@ public class BLEDeviceBase {
     private Runnable RSSI_poller = new Runnable() {
         @Override
         public void run() {
-            if(!isConnected()) {
+            if (!isConnected()) {
                 return;
             }
             mPwrap.reqRSSI();
-            if(rssi_cb!=null) {
+            if (rssi_cb != null) {
                 rssi_cb.run();
             }
             Util.postDelayed(RSSI_poller, 2000);
@@ -87,19 +90,19 @@ public class BLEDeviceBase {
     }
 
     public BLEDeviceBase chooseSubclass() {
-        if(!mPwrap.isConnected()) {
-            Log.e(TAG,"Can't decide subclass until after connection!");
+        if (!mPwrap.isConnected()) {
+            Timber.e("Can't decide subclass until after connection!");
             return null;
         }
         BLEDeviceBase rval;
-        if(isInOADMode()) {
-            Log.d(TAG,"Wrapping as an OADDevice");
+        if (isInOADMode()) {
+            Timber.d("Wrapping as an OADDevice");
             rval = new OADDevice(mPwrap);
-        } else if(mBuildTime < 1454355414) {
-            Log.d(TAG,"Wrapping as a LegacyMooshimeter");
+        } else if (mBuildTime < 1454355414) {
+            Timber.d("Wrapping as a LegacyMooshimeter");
             rval = new LegacyMooshimeterDevice(mPwrap);
         } else {
-            Log.d(TAG,"Wrapping as a Mooshimeter");
+            Timber.d("Wrapping as a Mooshimeter");
             rval = new MooshimeterDevice(mPwrap);
         }
         // FIXME: This is hacked up.  I shouldn't have to copy over individual members... indication that I should put some more thought in to architecture
@@ -113,18 +116,20 @@ public class BLEDeviceBase {
     ////////////////////////////////
 
     public static final class mPreferenceKeys {
-        private mPreferenceKeys() {}
+        private mPreferenceKeys() {
+        }
+
         public static final String
                 AUTOCONNECT = "AUTOCONNECT",
-                SKIP_UPGRADE= "SKIP_UPGRADE";
+                SKIP_UPGRADE = "SKIP_UPGRADE";
     }
 
     private String getSharedPreferenceString() {
-        return "mooshimeter-preference-"+mPwrap.getAddress();
+        return "mooshimeter-preference-" + mPwrap.getAddress();
     }
 
     private SharedPreferences getSharedPreferences() {
-        return mPwrap.mContext.getSharedPreferences(getSharedPreferenceString(),Context.MODE_PRIVATE);
+        return mPwrap.mContext.getSharedPreferences(getSharedPreferenceString(), Context.MODE_PRIVATE);
     }
 
     public boolean hasPreference(String key) {
@@ -132,7 +137,7 @@ public class BLEDeviceBase {
     }
 
     public boolean getPreference(String key) {
-        return getPreference(key,false);
+        return getPreference(key, false);
     }
 
     public boolean getPreference(String key, boolean d) {
@@ -142,7 +147,7 @@ public class BLEDeviceBase {
     public void setPreference(String key, boolean val) {
         SharedPreferences sp = getSharedPreferences();
         SharedPreferences.Editor e = sp.edit();
-        e.putBoolean(key,val);
+        e.putBoolean(key, val);
         e.commit();
     }
 
@@ -155,10 +160,10 @@ public class BLEDeviceBase {
         // we can just see what's in the service dictionary.
         // If we haven't connected, revert to whatever the scan
         // hinted at.
-        if(mPwrap.mServices.containsKey(mServiceUUIDs.METER_SERVICE)){
+        if (mPwrap.mServices.containsKey(mServiceUUIDs.METER_SERVICE)) {
             mOADMode = false;
         }
-        if(mPwrap.mServices.containsKey(mServiceUUIDs.OAD_SERVICE_UUID)) {
+        if (mPwrap.mServices.containsKey(mServiceUUIDs.OAD_SERVICE_UUID)) {
             mOADMode = true;
         }
         return mOADMode;
@@ -170,27 +175,35 @@ public class BLEDeviceBase {
     public int connect() {
         return mPwrap.connect();
     }
+
     public int discover() {
         return mPwrap.discover();
     }
+
     public boolean isConnected() {
         return mPwrap.isConnected();
     }
+
     public boolean isConnecting() {
         return mPwrap.isConnecting();
     }
+
     public boolean isDisconnected() {
         return mPwrap.isDisconnected();
     }
+
     public int getRSSI() {
         return mPwrap.mRssi;
     }
+
     public void setRSSI(int rssi) {
         mPwrap.mRssi = rssi;
     }
+
     public BluetoothDevice getBLEDevice() {
         return mPwrap.getBLEDevice();
     }
+
     public String getAddress() {
         return mPwrap.getAddress();
     }

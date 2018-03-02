@@ -12,9 +12,10 @@ public interface GraphingActivityInterface {
 
     /**
      * Add point to a series
+     *
      * @param series_n series to which point is to be added
-     * @param x x value
-     * @param y y value
+     * @param x        x value
+     * @param y        y value
      */
     void addPoint(int series_n, float x, float y);
 

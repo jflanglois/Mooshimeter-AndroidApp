@@ -36,13 +36,13 @@ public class OADDevice extends BLEDeviceBase {
 
     public static class mUUID {
         public final static UUID
-        OAD_SERVICE_UUID    = fromString("1BC5FFC0-0200-62AB-E411-F254E005DBD4"),
-        OAD_IMAGE_IDENTIFY  = fromString("1BC5FFC1-0200-62AB-E411-F254E005DBD4"),
-        OAD_IMAGE_BLOCK     = fromString("1BC5FFC2-0200-62AB-E411-F254E005DBD4"),
-        OAD_REBOOT          = fromString("1BC5FFC3-0200-62AB-E411-F254E005DBD4");
+                OAD_SERVICE_UUID = fromString("1BC5FFC0-0200-62AB-E411-F254E005DBD4"),
+                OAD_IMAGE_IDENTIFY = fromString("1BC5FFC1-0200-62AB-E411-F254E005DBD4"),
+                OAD_IMAGE_BLOCK = fromString("1BC5FFC2-0200-62AB-E411-F254E005DBD4"),
+                OAD_REBOOT = fromString("1BC5FFC3-0200-62AB-E411-F254E005DBD4");
     }
 
-    private static final String TAG="OADDevice";
+    private static final String TAG = "OADDevice";
 
     private static ByteBuffer wrap(byte[] in) {
         // Generates a little endian byte buffer wrapping the byte[]
@@ -63,9 +63,15 @@ public class OADDevice extends BLEDeviceBase {
         public int len;
         public int build_time;
         public byte[] res = new byte[4];
-        public OADIdentity(PeripheralWrapper p) {super(p);}
+
+        public OADIdentity(PeripheralWrapper p) {
+            super(p);
+        }
+
         @Override
-        public UUID getUUID() { return mUUID.OAD_IMAGE_IDENTIFY; }
+        public UUID getUUID() {
+            return mUUID.OAD_IMAGE_IDENTIFY;
+        }
 
         @Override
         public void unpackInner(byte[] buf) {
@@ -111,24 +117,28 @@ public class OADDevice extends BLEDeviceBase {
             return retval;
         }
     }
-    public class OADBlock    extends LegacyMeterStructure {
+
+    public class OADBlock extends LegacyMeterStructure {
         public OADBlock(PeripheralWrapper p) {
             super(p);
         }
+
         public short requestedBlock;
 
         public short blockNum;
         public byte[] bytes;
 
         @Override
-        public UUID getUUID() { return mUUID.OAD_IMAGE_BLOCK; }
+        public UUID getUUID() {
+            return mUUID.OAD_IMAGE_BLOCK;
+        }
 
         @Override
         public byte[] pack() {
             ByteBuffer b = wrap(new byte[18]);
             b.order(ByteOrder.LITTLE_ENDIAN);
             b.putShort(blockNum);
-            for( byte c : bytes ) {
+            for (byte c : bytes) {
                 b.put(c);
             }
             return b.array();
@@ -145,8 +155,8 @@ public class OADDevice extends BLEDeviceBase {
     // Used so the inner classes have something to grab
     public OADDevice mInstance;
 
-    public OADIdentity      oad_identity;
-    public OADBlock         oad_block;
+    public OADIdentity oad_identity;
+    public OADBlock oad_block;
 
     public OADDevice(PeripheralWrapper wrap) {
         // Initialize super
@@ -155,8 +165,8 @@ public class OADDevice extends BLEDeviceBase {
         mInstance = this;
 
         // Initialize internal structures
-        oad_identity        = new OADIdentity(mPwrap);
-        oad_block           = new OADBlock(mPwrap);
+        oad_identity = new OADIdentity(mPwrap);
+        oad_block = new OADBlock(mPwrap);
     }
 
     public int initialize() {

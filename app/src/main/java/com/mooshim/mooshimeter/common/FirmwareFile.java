@@ -1,19 +1,15 @@
 package com.mooshim.mooshimeter.common;
 
-import android.util.Log;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-/**
- * Created by First on 7/3/2016.
- */
+import timber.log.Timber;
+
 public class FirmwareFile {
     // Singleton resources for accessing the bundled firmware image
     private static String TAG = "FirmwareFile";
@@ -37,7 +33,7 @@ public class FirmwareFile {
 
     public byte[] getFileBlock(short bnum) {
         final byte[] rval = new byte[OAD_BLOCK_SIZE];
-        System.arraycopy(mFileBuffer, bnum*OAD_BLOCK_SIZE, rval, 0, OAD_BLOCK_SIZE);
+        System.arraycopy(mFileBuffer, bnum * OAD_BLOCK_SIZE, rval, 0, OAD_BLOCK_SIZE);
         return rval;
     }
 
@@ -48,8 +44,8 @@ public class FirmwareFile {
         header_crc1 = b.getShort();
         header_user_version = b.getShort();
         header_len_words = b.getShort();
-        if(header_len_words<0) { // Because java is stupid and doesn't have unsigned types
-            header_len_words&=0x0000FFFF;
+        if (header_len_words < 0) { // Because java is stupid and doesn't have unsigned types
+            header_len_words &= 0x0000FFFF;
         }
         mFirmwareVersion = b.getInt();
     }
@@ -64,7 +60,7 @@ public class FirmwareFile {
             parseBuffer();
         } catch (IOException e) {
             // Handle exceptions here
-            Log.e(TAG, "Failed to unpack the firmware asset");
+            Timber.e("Failed to unpack the firmware asset");
         }
     }
 
@@ -72,8 +68,8 @@ public class FirmwareFile {
         URL url;
         try {
             url = new URL(urlStr);
-        } catch(MalformedURLException e){
-            Log.e(TAG,e.getLocalizedMessage());
+        } catch (MalformedURLException e) {
+            Timber.e(e.getLocalizedMessage());
             e.getStackTrace();
             return;
         }
@@ -84,20 +80,20 @@ public class FirmwareFile {
             conn.connect();
 
             InputStream stream = conn.getInputStream();
-            int bytes_read=0;
+            int bytes_read = 0;
             int rval;
-            while(-1 != (rval=stream.read(mFileBuffer, bytes_read, mFileBuffer.length-bytes_read))) {
-                bytes_read+=rval;
+            while (-1 != (rval = stream.read(mFileBuffer, bytes_read, mFileBuffer.length - bytes_read))) {
+                bytes_read += rval;
             }
             stream.close();
             parseBuffer();
-            if(header_len_words*4 != bytes_read) {
-                Log.e(TAG,"Downloaded a file of mysterious provenance");
+            if (header_len_words * 4 != bytes_read) {
+                Timber.e("Downloaded a file of mysterious provenance");
             } else {
-                Log.d(TAG,"Successfully downloaded FW file.");
+                Timber.d("Successfully downloaded FW file.");
             }
-        } catch(IOException e){
-            Log.e(TAG,e.getLocalizedMessage());
+        } catch (IOException e) {
+            Timber.e(e.getLocalizedMessage());
             e.getStackTrace();
         }
     }
@@ -107,6 +103,7 @@ public class FirmwareFile {
         rval.downloadFromURL(url);
         return rval;
     }
+
     public static FirmwareFile FirmwareFileFromPath(String path) {
         FirmwareFile rval = new FirmwareFile();
         rval.loadFile(path);

@@ -2,9 +2,10 @@ package com.mooshim.mooshimeter.activities;
 
 import android.app.Application;
 
+import com.crashlytics.android.Crashlytics;
 import com.mooshim.mooshimeter.BuildConfig;
 import com.mooshim.mooshimeter.common.Util;
-import com.crashlytics.android.Crashlytics;
+
 import io.fabric.sdk.android.Fabric;
 import timber.log.Timber;
 

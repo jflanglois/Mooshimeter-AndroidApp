@@ -3,9 +3,6 @@ package com.mooshim.mooshimeter.interfaces;
 import com.mooshim.mooshimeter.common.MeterReading;
 import com.mooshim.mooshimeter.devices.MooshimeterDeviceBase;
 
-/**
- * Created by First on 2/26/2016.
- */
 public interface MooshimeterDelegate {
     void onDisconnect();
 

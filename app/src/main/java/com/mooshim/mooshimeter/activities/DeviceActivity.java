@@ -1,4 +1,3 @@
-
 package com.mooshim.mooshimeter.activities;
 
 import android.content.Context;

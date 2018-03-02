@@ -34,7 +34,6 @@ import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -48,13 +47,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mooshim.mooshimeter.R;
+import com.mooshim.mooshimeter.common.FilteredScanCallback;
 import com.mooshim.mooshimeter.common.FirmwareFile;
+import com.mooshim.mooshimeter.common.Util;
 import com.mooshim.mooshimeter.devices.BLEDeviceBase;
 import com.mooshim.mooshimeter.devices.PeripheralWrapper;
-import com.mooshim.mooshimeter.common.Util;
-import com.mooshim.mooshimeter.common.FilteredScanCallback;
 
 import java.util.List;
+
+import timber.log.Timber;
 
 public class ScanActivity extends BaseActivity {
     // Defines
@@ -88,7 +89,7 @@ public class ScanActivity extends BaseActivity {
             setError("BLE not supported on this device");
         }
 
-        if( !BluetoothAdapter.getDefaultAdapter().isEnabled() ) {
+        if (!BluetoothAdapter.getDefaultAdapter().isEnabled()) {
             // Request BT adapter to be turned on
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableIntent, REQ_ENABLE_BT);
@@ -96,8 +97,8 @@ public class ScanActivity extends BaseActivity {
 
         setContentView(R.layout.fragment_scan);
         // Initialize widgets
-        mStatus           = (TextView)     findViewById(R.id.status);
-        mBtnScan          = (Button)       findViewById(R.id.btn_scan);
+        mStatus = (TextView) findViewById(R.id.status);
+        mBtnScan = (Button) findViewById(R.id.btn_scan);
         mDeviceScrollView = (LinearLayout) findViewById(R.id.device_list);
 
         mDeviceScrollView.setClickable(true);
@@ -134,8 +135,8 @@ public class ScanActivity extends BaseActivity {
     public void onStart() {
         super.onStart();
         // Find if we have any connected meters, if so make sure they resume streaming
-        for(BLEDeviceBase m : getDevices()) {
-            if(m.isConnected()) {
+        for (BLEDeviceBase m : getDevices()) {
+            if (m.isConnected()) {
                 addDeviceToTileList(m);
             }
         }
@@ -158,27 +159,24 @@ public class ScanActivity extends BaseActivity {
         // If there are, disconnect them.
         BluetoothManager manager = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
         List<BluetoothDevice> connectedDevices = manager.getConnectedDevices(BluetoothProfile.GATT);
-        for( BluetoothDevice device : connectedDevices ) {
+        for (BluetoothDevice device : connectedDevices) {
             int type = device.getType();
-            if(type != BluetoothDevice.DEVICE_TYPE_LE) {
+            if (type != BluetoothDevice.DEVICE_TYPE_LE) {
                 continue;
             }
-            Log.d(TAG,"FOUND AN ALREADY CONNECTED BLE DEVICE!");
+            Timber.d("FOUND AN ALREADY CONNECTED BLE DEVICE!");
             // Is this already in our list or is it an orphan?
-            if(null == getDeviceWithAddress(device.getAddress())) {
+            if (null == getDeviceWithAddress(device.getAddress())) {
                 // This is an orphan device.  Just disconnect it.
                 final BluetoothDevice inner_device = device;
                 final Context inner_context = this;
-                Util.dispatch(new Runnable() {
-                    @Override
-                    public void run() {
-                        PeripheralWrapper p = new PeripheralWrapper(inner_device, inner_context);
-                        // This song and dance is simply because you can't call "disconnect" on a BLEDevice
-                        // you have to call it on a BluetoothGatt, so we're using PeripheralWrapper to handle
-                        // that
-                        p.connect();
-                        p.disconnect();
-                    }
+                Util.dispatch(() -> {
+                    PeripheralWrapper p = new PeripheralWrapper(inner_device, inner_context);
+                    // This song and dance is simply because you can't call "disconnect" on a BLEDevice
+                    // you have to call it on a BluetoothGatt, so we're using PeripheralWrapper to handle
+                    // that
+                    p.connect();
+                    p.disconnect();
                 });
             }
         }
@@ -197,7 +195,7 @@ public class ScanActivity extends BaseActivity {
         // Handle presses on the action bar items
         switch (item.getItemId()) {
             case R.id.opt_prefs:
-                pushActivityToStack(null,GlobalPreferencesActivity.class);
+                pushActivityToStack(null, GlobalPreferencesActivity.class);
                 break;
             default:
                 return super.onOptionsItemSelected(item);
@@ -225,38 +223,32 @@ public class ScanActivity extends BaseActivity {
             mBtnScan.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_action_refresh, 0);
             refreshAllMeterTiles();
         }
-        if(getNDevices() == 0) {
+        if (getNDevices() == 0) {
             mStatus.setText("No devices found");
         }
     }
 
     void setStatus(final String txt) {
         final Activity a = this;
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mStatus.setText(txt);
-                mStatus.setTextAppearance(a, R.style.statusStyle_Success);
-            }
+        runOnUiThread(() -> {
+            mStatus.setText(txt);
+            mStatus.setTextAppearance(a, R.style.statusStyle_Success);
         });
     }
 
     void setError(final String txt) {
         final Activity a = this;
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mStatus.setText(txt);
-                mStatus.setTextAppearance(a, R.style.statusStyle_Failure);
-            }
+        runOnUiThread(() -> {
+            mStatus.setText(txt);
+            mStatus.setTextAppearance(a, R.style.statusStyle_Failure);
         });
     }
 
     private View findTileForMeter(final BLEDeviceBase m) {
-        for(int i = 0; i < mDeviceScrollView.getChildCount(); i++) {
+        for (int i = 0; i < mDeviceScrollView.getChildCount(); i++) {
             View v = mDeviceScrollView.getChildAt(i);
             BLEDeviceBase test = (BLEDeviceBase) v.getTag();
-            if(test.getAddress().equals(m.getAddress())) {
+            if (test.getAddress().equals(m.getAddress())) {
                 return v;
             }
         }
@@ -265,9 +257,9 @@ public class ScanActivity extends BaseActivity {
     }
 
     private void addDeviceToTileList(final BLEDeviceBase d) {
-        if(findTileForMeter(d) != null) {
+        if (findTileForMeter(d) != null) {
             // The meter as already been added
-            Log.e(TAG, "Tried to add the same meter twice");
+            Timber.e("Tried to add the same meter twice");
             return;
         }
 
@@ -275,22 +267,16 @@ public class ScanActivity extends BaseActivity {
         wrapper.setOrientation(LinearLayout.VERTICAL);
         wrapper.setLayoutParams(mDeviceScrollView.getLayoutParams());
 
-        wrapper.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View view) {
-                stopScan();
-                Util.dispatch(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (d.isConnected()
-                                || d.isConnecting()) {
-                            startSingleMeterActivity(d);
-                        } else {
-                            toggleConnectionState(d);
-                        }
-                    }
-                });
-            }
+        wrapper.setOnClickListener(view -> {
+            stopScan();
+            Util.dispatch(() -> {
+                if (d.isConnected()
+                        || d.isConnecting()) {
+                    startSingleMeterActivity(d);
+                } else {
+                    toggleConnectionState(d);
+                }
+            });
         });
 
         wrapper.addView(mInflater.inflate(R.layout.element_mm_titlebar, wrapper, false));
@@ -307,15 +293,15 @@ public class ScanActivity extends BaseActivity {
 
     private void refreshMeterTile(final ViewGroup wrapper) {
         final BLEDeviceBase d = (BLEDeviceBase) wrapper.getTag();
-        if(wrapper.getChildCount()==0) {
-            Log.e(TAG,"Received empty wrapper");
+        if (wrapper.getChildCount() == 0) {
+            Timber.e("Received empty wrapper");
             return;
         }
         // Update the title bar
         int rssi = d.getRSSI();
         String name;
         SpannableStringBuilder build = new SpannableStringBuilder();
-        if(d.mOADMode) {
+        if (d.mOADMode) {
             name = "Bootloader";
         } else {
             name = d.getBLEDevice().getName();
@@ -324,7 +310,7 @@ public class ScanActivity extends BaseActivity {
             }
         }
 
-        if(d.mBuildTime == 0) {
+        if (d.mBuildTime == 0) {
             build.append("Invalid firmware");
         } else {
             FirmwareFile f = Util.getLatestFirmware();
@@ -335,38 +321,28 @@ public class ScanActivity extends BaseActivity {
             } else if(d.mBuildTime<f.getVersion()) {
                 color = 0xFFFF8000;
             }*/
-            SpannableString bt= new SpannableString(Integer.toString(d.mBuildTime));
+            SpannableString bt = new SpannableString(Integer.toString(d.mBuildTime));
             bt.setSpan(new ForegroundColorSpan(color), 0, bt.length(), 0);
             build.append(bt);
         }
 
         SpannableStringBuilder descr = new SpannableStringBuilder();
-        descr.append(name+"\n");
+        descr.append(name + "\n");
         descr.append(build);
         descr.append("\nRssi: " + rssi + " dBm");
         ((TextView) wrapper.findViewById(R.id.descr)).setText(descr, TextView.BufferType.SPANNABLE);
 
-        final Button bv = (Button)wrapper.findViewById(R.id.btnConnect);
+        final Button bv = (Button) wrapper.findViewById(R.id.btnConnect);
 
-        int bgid = d.isConnected() ? R.drawable.connected:R.drawable.disconnected;
+        int bgid = d.isConnected() ? R.drawable.connected : R.drawable.disconnected;
         bv.setBackground(getResources().getDrawable(bgid));
 
         // Set the click listeners
-        bv.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Util.dispatch(new Runnable() {
-                    @Override
-                    public void run() {
-                        toggleConnectionState(d);
-                    }
-                });
-            }
-        });
+        bv.setOnClickListener(view -> Util.dispatch(() -> toggleConnectionState(d)));
     }
 
     private void refreshAllMeterTiles() {
-        for(int i = 0; i < mDeviceScrollView.getChildCount(); i++) {
+        for (int i = 0; i < mDeviceScrollView.getChildCount(); i++) {
             final ViewGroup vg = (ViewGroup) mDeviceScrollView.getChildAt(i);
             refreshMeterTile(vg);
         }
@@ -378,25 +354,14 @@ public class ScanActivity extends BaseActivity {
 
     private class MainScanCallback extends FilteredScanCallback {
         public void FilteredCallback(final BLEDeviceBase m) {
-            if(findTileForMeter(m)==null) {
-                final BLEDeviceBase wrapped = m;
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        addDeviceToTileList(wrapped);
-                    }
-                });
+            if (findTileForMeter(m) == null) {
+                runOnUiThread(() -> addDeviceToTileList(m));
             }
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    refreshMeterTile((ViewGroup) findTileForMeter(m));
-                }
-            });
+            runOnUiThread(() -> refreshMeterTile((ViewGroup) findTileForMeter(m)));
             /*boolean should_automatically_connect_for_firmware_upload =
                     m.isInOADMode() && (m.mBuildTime < Util.getBundledFirmwareVersion());*/
-            if(   m.getPreference(BLEDeviceBase.mPreferenceKeys.AUTOCONNECT)
-               /*|| should_automatically_connect_for_firmware_upload*/ ) {
+            if (m.getPreference(BLEDeviceBase.mPreferenceKeys.AUTOCONNECT)
+               /*|| should_automatically_connect_for_firmware_upload*/) {
                 // We've found a meter with the autoconnect feature enabled, or it's in OAD mode
                 // which almost certainly means the user wants to do a firmware update
                 // Connect to it!
@@ -408,17 +373,7 @@ public class ScanActivity extends BaseActivity {
                 // Why the crazy nesting?
                 // At this point there might be a few runnables on the main queue that need to run
                 // before we can toggle the connection state.
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Util.dispatch(new Runnable() {
-                            @Override
-                            public void run() {
-                                toggleConnectionState(m);
-                            }
-                        });
-                    }
-                });
+                runOnUiThread(() -> Util.dispatch(() -> toggleConnectionState(m)));
             }
         }
     }
@@ -428,11 +383,13 @@ public class ScanActivity extends BaseActivity {
     /////////////////////////////
 
     public synchronized void startScan() {
-        if(mScanCb != null){return;}
+        if (mScanCb != null) {
+            return;
+        }
         // Prune disconnected meters
-        for(BLEDeviceBase m : getDevices()) {
-            if( m.isDisconnected() ) {
-                for(int i = 0; i < mDeviceScrollView.getChildCount(); i++) {
+        for (BLEDeviceBase m : getDevices()) {
+            if (m.isDisconnected()) {
+                for (int i = 0; i < mDeviceScrollView.getChildCount(); i++) {
                     ViewGroup vg = (ViewGroup) mDeviceScrollView.getChildAt(i);
                     if (vg.getTag() == m) {
                         mDeviceScrollView.removeView(vg);
@@ -447,35 +404,27 @@ public class ScanActivity extends BaseActivity {
         final BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         mScanCb = new MainScanCallback();
 
-        if( !bluetoothAdapter.startLeScan(mScanCb) ) {
+        if (!bluetoothAdapter.startLeScan(mScanCb)) {
             // Starting the scan failed!
-            Log.e(TAG,"Failed to start BLE Scan");
+            Timber.e("Failed to start BLE Scan");
             setError("Failed to start scan");
             stopScan();
         } else {
             mBtnScan.setEnabled(false);
             updateScanningButton(true);
-            Util.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    stopScan();
-                }
-            }, 5000);
+            Util.postDelayed(this::stopScan, 5000);
         }
     }
 
     public void stopScan() {
-        Log.d(TAG,"stopScan called");
-        if(mScanCb==null) {
-            Log.d(TAG,"Scan not running!  Not going to call stopLeScan.");
+        Timber.d("stopScan called");
+        if (mScanCb == null) {
+            Timber.d("Scan not running!  Not going to call stopLeScan.");
             return;
         }
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mBtnScan.setEnabled(true);
-                updateScanningButton(false);
-            }
+        runOnUiThread(() -> {
+            mBtnScan.setEnabled(true);
+            updateScanningButton(false);
         });
         final BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         bluetoothAdapter.stopLeScan(mScanCb);
@@ -501,7 +450,7 @@ public class ScanActivity extends BaseActivity {
                 startOADActivity(m);
             } else {
                 Util.blockOnAlertBox(this, "Reboot to OAD failed", "Sorry, this version of Android can't manually reconnect to the Mooshimeter in bootloader mode.  \n\nYou can do it manually by resetting the Mooshimeter and connecting while it is blinking slowly.");
-                Log.e(TAG,"FAILED TO RECONNECT IN OAD");
+                Timber.e("FAILED TO RECONNECT IN OAD");
                 m.disconnect();
             }
         } else {
@@ -517,7 +466,7 @@ public class ScanActivity extends BaseActivity {
                         break;
                     case 1:
                         // Continue without viewing
-                        m.setPreference(BLEDeviceBase.mPreferenceKeys.SKIP_UPGRADE,true);
+                        m.setPreference(BLEDeviceBase.mPreferenceKeys.SKIP_UPGRADE, true);
                         pushActivityToStack(m, DeviceActivity.class);
                         break;
                 }
@@ -529,40 +478,37 @@ public class ScanActivity extends BaseActivity {
 
     private void toggleConnectionState(BLEDeviceBase m) {
         ViewGroup vg = (ViewGroup) findTileForMeter(m);
-        if(vg==null) {
-            Log.e(TAG, "trying to toggle connection state on a tile that hasn't been instantiated");
+        if (vg == null) {
+            Timber.e("trying to toggle connection state on a tile that hasn't been instantiated");
             new Exception().printStackTrace();
             return;
         }
         final Button bv = (Button) vg.findViewById(R.id.btnConnect);
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                bv.setEnabled(false);
-                bv.setAlpha((float) 0.5);
-            }
+        runOnUiThread(() -> {
+            bv.setEnabled(false);
+            bv.setAlpha((float) 0.5);
         });
-        if(    m.isConnected()
-            || m.isConnecting() ) {
-            m.setPreference(BLEDeviceBase.mPreferenceKeys.AUTOCONNECT,false);
+        if (m.isConnected()
+                || m.isConnecting()) {
+            m.setPreference(BLEDeviceBase.mPreferenceKeys.AUTOCONNECT, false);
             m.disconnect();
         } else {
             do {
                 int rval = BluetoothGatt.GATT_FAILURE;
                 int attempts = 0;
-                while(attempts++ < 3 && rval != BluetoothGatt.GATT_SUCCESS) {
-                    setStatus("Connecting... Attempt "+attempts);
+                while (attempts++ < 3 && rval != BluetoothGatt.GATT_SUCCESS) {
+                    setStatus("Connecting... Attempt " + attempts);
                     rval = m.connect();
                 }
                 if (BluetoothGatt.GATT_SUCCESS != rval) {
-                    setStatus("Connection failed.  Status: "+rval);
+                    setStatus("Connection failed.  Status: " + rval);
                     break;
                 }
                 setStatus("Discovering Services...");
                 rval = m.discover();
                 if (BluetoothGatt.GATT_SUCCESS != rval) {
                     // We may have failed because
-                    setStatus("Discovery failed.  Status: "+rval);
+                    setStatus("Discovery failed.  Status: " + rval);
                     m.disconnect();
                     break;
                 }
@@ -570,7 +516,7 @@ public class ScanActivity extends BaseActivity {
                 // device.  We need to figure out exactly what kind it is and start the right
                 // activity for it.
                 BLEDeviceBase tmp_m = m.chooseSubclass();
-                if(tmp_m==null) {
+                if (tmp_m == null) {
                     //Couldn't choose a subclass for some reason...
                     setStatus("I don't recognize this device... aborting");
                     m.disconnect();
@@ -582,24 +528,21 @@ public class ScanActivity extends BaseActivity {
                 putDevice(m);
                 setStatus("Initializing...");
                 rval = m.initialize();
-                if(rval != 0) {
-                    setStatus("Initialization failed.  Status: "+rval);
+                if (rval != 0) {
+                    setStatus("Initialization failed.  Status: " + rval);
                     m.disconnect();
                     break;
                 }
                 setStatus("Connected!");
                 startSingleMeterActivity(m);
-            }while(false);
+            } while (false);
         }
         final BLEDeviceBase finalM = m;
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                bv.setEnabled(true);
-                bv.setAlpha((float) 1.0);
-                int bgid = finalM.isConnected() ? R.drawable.connected : R.drawable.disconnected;
-                bv.setBackground(getResources().getDrawable(bgid));
-            }
+        runOnUiThread(() -> {
+            bv.setEnabled(true);
+            bv.setAlpha((float) 1.0);
+            int bgid = finalM.isConnected() ? R.drawable.connected : R.drawable.disconnected;
+            bv.setBackground(getResources().getDrawable(bgid));
         });
     }
 
@@ -611,12 +554,12 @@ public class ScanActivity extends BaseActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
-            Log.d("TAG", "ADAPTER" + action);
+            Timber.d("ADAPTER" + action);
             // TODO: This is here as a template for later.
 
             if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
                 final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
-                                                     BluetoothAdapter.ERROR);
+                        BluetoothAdapter.ERROR);
                 switch (state) {
                     case BluetoothAdapter.STATE_OFF:
                         break;

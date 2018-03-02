@@ -28,11 +28,10 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
-import android.util.Log;
 
-import com.mooshim.mooshimeter.interfaces.NotifyHandler;
 import com.mooshim.mooshimeter.common.StatLockManager;
 import com.mooshim.mooshimeter.common.Util;
+import com.mooshim.mooshimeter.interfaces.NotifyHandler;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -43,32 +42,34 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
+import timber.log.Timber;
+
 public class PeripheralWrapper {
-    private static final String TAG="PeripheralWrapper";
-    private static final ReentrantLock bleLock= new ReentrantLock(true);
-    private static final ReentrantLock conditionLock= new ReentrantLock(true);
+    private static final String TAG = "PeripheralWrapper";
+    private static final ReentrantLock bleLock = new ReentrantLock(true);
+    private static final ReentrantLock conditionLock = new ReentrantLock(true);
 
     protected Context mContext;
     private BluetoothGatt mBluetoothGatt;
     protected BluetoothDevice mDevice;
     private BluetoothGattCallback mGattCallbacks;
-    protected Map<UUID,BluetoothGattService> mServices;
-    protected Map<UUID,BluetoothGattCharacteristic> mCharacteristics;
-    private Map<UUID,NotifyHandler> mNotifyCB;
+    protected Map<UUID, BluetoothGattService> mServices;
+    protected Map<UUID, BluetoothGattCharacteristic> mCharacteristics;
+    private Map<UUID, NotifyHandler> mNotifyCB;
     private final Map<Integer, List<Runnable>> mConnectionStateCB;
     private Map<Integer, Runnable> mConnectionStateCBByHandle;
 
     private int connectionStateCBHandle = 0;
 
-    private StatLockManager bleStateCondition    ;
-    private StatLockManager bleDiscoverCondition ;
-    private StatLockManager bleReadCondition     ;
-    private StatLockManager bleWriteCondition    ;
-    private StatLockManager bleChangedCondition  ;
-    private StatLockManager bleDReadCondition    ;
-    private StatLockManager bleDWriteCondition   ;
-    private StatLockManager bleRWriteCondition   ;
-    private StatLockManager bleRSSICondition     ;
+    private StatLockManager bleStateCondition;
+    private StatLockManager bleDiscoverCondition;
+    private StatLockManager bleReadCondition;
+    private StatLockManager bleWriteCondition;
+    private StatLockManager bleChangedCondition;
+    private StatLockManager bleDReadCondition;
+    private StatLockManager bleDWriteCondition;
+    private StatLockManager bleRWriteCondition;
+    private StatLockManager bleRSSICondition;
 
     public int mRssi;
     public int mConnectionState;
@@ -77,6 +78,7 @@ public class PeripheralWrapper {
 
     private class Interruptable implements Callable<Void> {
         public int mRval = 0;
+
         @Override
         public Void call() throws InterruptedException {
             return null;
@@ -84,44 +86,41 @@ public class PeripheralWrapper {
     }
 
     // Anything that has to do with the BluetoothGatt needs to go through here
-    private int protectedCall(final Interruptable r,boolean force_main_thread) {
-        if(Util.onCBThread()) {
-            Log.e(TAG,"DON'T DO BLE STUFF FROM THE CB THREAD!");
+    private int protectedCall(final Interruptable r, boolean force_main_thread) {
+        if (Util.onCBThread()) {
+            Timber.e("DON'T DO BLE STUFF FROM THE CB THREAD!");
             new Exception().printStackTrace();
         }
-        Runnable payload = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if(bleLock.isLocked() && !bleLock.isHeldByCurrentThread()) {
-                        Log.d(TAG,"WAITING ON bleLock");
-                    }
-                    bleLock.lock();
-                    if(conditionLock.isLocked() && !conditionLock.isHeldByCurrentThread()) {
-                        Log.d(TAG,"WAITING ON conditionLock");
-                    }
-                    conditionLock.lock();
-                    Log.d(TAG, "MAKING PROTECTED CALL");
-                    r.call();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } finally {
-                    boolean released = false;
-                    if(conditionLock.isHeldByCurrentThread()) {
-                        conditionLock.unlock();
-                        released = true;
-                    }
-                    if(bleLock.isHeldByCurrentThread()) {
-                        bleLock.unlock();
-                        released = true;
-                    }
-                    if(released) {
-                        Log.d(TAG,"RELEASED");
-                    }
+        Runnable payload = () -> {
+            try {
+                if (bleLock.isLocked() && !bleLock.isHeldByCurrentThread()) {
+                    Timber.d("WAITING ON bleLock");
+                }
+                bleLock.lock();
+                if (conditionLock.isLocked() && !conditionLock.isHeldByCurrentThread()) {
+                    Timber.d("WAITING ON conditionLock");
+                }
+                conditionLock.lock();
+                Timber.d("MAKING PROTECTED CALL");
+                r.call();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                boolean released = false;
+                if (conditionLock.isHeldByCurrentThread()) {
+                    conditionLock.unlock();
+                    released = true;
+                }
+                if (bleLock.isHeldByCurrentThread()) {
+                    bleLock.unlock();
+                    released = true;
+                }
+                if (released) {
+                    Timber.d("RELEASED");
                 }
             }
         };
-        if(force_main_thread) {
+        if (force_main_thread) {
             Util.blockUntilRunOnMainThread(payload);
         } else {
             payload.run();
@@ -130,94 +129,142 @@ public class PeripheralWrapper {
     }
 
     private int protectedCall(final Interruptable r) {
-        return protectedCall(r,false);
+        return protectedCall(r, false);
     }
-    
+
     public PeripheralWrapper(final BluetoothDevice device, final Context context) {
         mContext = context;
         mDevice = device;
         mConnectionState = BluetoothProfile.STATE_DISCONNECTED;
 
-        mCharacteristics   = new ConcurrentHashMap<>();
-        mServices          = new ConcurrentHashMap<>();
-        mNotifyCB          = new ConcurrentHashMap<>();
+        mCharacteristics = new ConcurrentHashMap<>();
+        mServices = new ConcurrentHashMap<>();
+        mNotifyCB = new ConcurrentHashMap<>();
         mConnectionStateCB = new ConcurrentHashMap<>();
-        mConnectionStateCB.put(BluetoothProfile.STATE_DISCONNECTED,new ArrayList<Runnable>());
-        mConnectionStateCB.put(BluetoothProfile.STATE_DISCONNECTING,new ArrayList<Runnable>());
-        mConnectionStateCB.put(BluetoothProfile.STATE_CONNECTED,new ArrayList<Runnable>());
-        mConnectionStateCB.put(BluetoothProfile.STATE_CONNECTING,new ArrayList<Runnable>());
+        mConnectionStateCB.put(BluetoothProfile.STATE_DISCONNECTED, new ArrayList<>());
+        mConnectionStateCB.put(BluetoothProfile.STATE_DISCONNECTING, new ArrayList<>());
+        mConnectionStateCB.put(BluetoothProfile.STATE_CONNECTED, new ArrayList<>());
+        mConnectionStateCB.put(BluetoothProfile.STATE_CONNECTING, new ArrayList<>());
         mConnectionStateCBByHandle = new ConcurrentHashMap<>();
 
-        bleStateCondition    = new StatLockManager(conditionLock,"STATE");
-        bleDiscoverCondition = new StatLockManager(conditionLock,"DISCO");
-        bleReadCondition     = new StatLockManager(conditionLock,"READ ");
-        bleWriteCondition    = new StatLockManager(conditionLock,"WRITE");
-        bleChangedCondition  = new StatLockManager(conditionLock,"CHANG");
-        bleDReadCondition    = new StatLockManager(conditionLock,"DREAD");
-        bleDWriteCondition   = new StatLockManager(conditionLock,"DWRIT");
-        bleRWriteCondition   = new StatLockManager(conditionLock,"RWRIT");
-        bleRSSICondition     = new StatLockManager(conditionLock,"RSSI ");
-        
+        bleStateCondition = new StatLockManager(conditionLock, "STATE");
+        bleDiscoverCondition = new StatLockManager(conditionLock, "DISCO");
+        bleReadCondition = new StatLockManager(conditionLock, "READ ");
+        bleWriteCondition = new StatLockManager(conditionLock, "WRITE");
+        bleChangedCondition = new StatLockManager(conditionLock, "CHANG");
+        bleDReadCondition = new StatLockManager(conditionLock, "DREAD");
+        bleDWriteCondition = new StatLockManager(conditionLock, "DWRIT");
+        bleRWriteCondition = new StatLockManager(conditionLock, "RWRIT");
+        bleRSSICondition = new StatLockManager(conditionLock, "RSSI ");
+
         mGattCallbacks = new BluetoothGattCallback() {
-            @Override public void onServicesDiscovered(BluetoothGatt g, int stat)                                 { Log.d(TAG,"GATTCB:DISCOVER");bleDiscoverCondition.l(stat);               bleDiscoverCondition.sig(); bleDiscoverCondition.ul();}
-            @Override public void onCharacteristicRead(BluetoothGatt g, BluetoothGattCharacteristic c, int stat)  { Log.d(TAG,"GATTCB:READ");    bleReadCondition    .l(stat);               bleReadCondition    .sig(); bleReadCondition    .ul();}
-            @Override public void onCharacteristicWrite(BluetoothGatt g, BluetoothGattCharacteristic c, int stat) { Log.d(TAG,"GATTCB:WRITE");   bleWriteCondition   .l(stat);               bleWriteCondition   .sig(); bleWriteCondition   .ul();}
-            @Override public void onDescriptorRead(BluetoothGatt g, BluetoothGattDescriptor d, int stat)          { Log.d(TAG,"GATTCB:DREAD");   bleDReadCondition   .l(stat);               bleDReadCondition   .sig(); bleDReadCondition   .ul();}
-            @Override public void onDescriptorWrite(BluetoothGatt g, BluetoothGattDescriptor d, int stat)         { Log.d(TAG,"GATTCB:DWRITE");  bleDWriteCondition  .l(stat);               bleDWriteCondition  .sig(); bleDWriteCondition  .ul();}
-            @Override public void onReliableWriteCompleted(BluetoothGatt g, int stat)                             { Log.d(TAG,"GATTCB:RWRITE");  bleRWriteCondition  .l(stat);               bleRWriteCondition  .sig(); bleRWriteCondition  .ul();}
-            @Override public void onReadRemoteRssi(BluetoothGatt g, int rssi, int stat)                           { Log.d(TAG,"GATTCB:RSSI");    bleRSSICondition    .l(stat); mRssi = rssi; bleRSSICondition    .sig(); bleRSSICondition    .ul();}
-            @Override public void onCharacteristicChanged(BluetoothGatt g, BluetoothGattCharacteristic c)         { Log.d(TAG,"GATTCB:CCHANGE");
-                bleChangedCondition .l(0);
+            @Override
+            public void onServicesDiscovered(BluetoothGatt g, int stat) {
+                Timber.d("GATTCB:DISCOVER");
+                bleDiscoverCondition.l(stat);
+                bleDiscoverCondition.sig();
+                bleDiscoverCondition.ul();
+            }
+
+            @Override
+            public void onCharacteristicRead(BluetoothGatt g, BluetoothGattCharacteristic c, int stat) {
+                Timber.d("GATTCB:READ");
+                bleReadCondition.l(stat);
+                bleReadCondition.sig();
+                bleReadCondition.ul();
+            }
+
+            @Override
+            public void onCharacteristicWrite(BluetoothGatt g, BluetoothGattCharacteristic c, int stat) {
+                Timber.d("GATTCB:WRITE");
+                bleWriteCondition.l(stat);
+                bleWriteCondition.sig();
+                bleWriteCondition.ul();
+            }
+
+            @Override
+            public void onDescriptorRead(BluetoothGatt g, BluetoothGattDescriptor d, int stat) {
+                Timber.d("GATTCB:DREAD");
+                bleDReadCondition.l(stat);
+                bleDReadCondition.sig();
+                bleDReadCondition.ul();
+            }
+
+            @Override
+            public void onDescriptorWrite(BluetoothGatt g, BluetoothGattDescriptor d, int stat) {
+                Timber.d("GATTCB:DWRITE");
+                bleDWriteCondition.l(stat);
+                bleDWriteCondition.sig();
+                bleDWriteCondition.ul();
+            }
+
+            @Override
+            public void onReliableWriteCompleted(BluetoothGatt g, int stat) {
+                Timber.d("GATTCB:RWRITE");
+                bleRWriteCondition.l(stat);
+                bleRWriteCondition.sig();
+                bleRWriteCondition.ul();
+            }
+
+            @Override
+            public void onReadRemoteRssi(BluetoothGatt g, int rssi, int stat) {
+                Timber.d("GATTCB:RSSI");
+                bleRSSICondition.l(stat);
+                mRssi = rssi;
+                bleRSSICondition.sig();
+                bleRSSICondition.ul();
+            }
+
+            @Override
+            public void onCharacteristicChanged(BluetoothGatt g, BluetoothGattCharacteristic c) {
+                Timber.d("GATTCB:CCHANGE");
+                bleChangedCondition.l(0);
                 final byte[] val = c.getValue();
                 // The BLE stack sometimes gives us a null here, unclear why.
-                if( val != null ) {
+                if (val != null) {
                     final NotifyHandler cb = mNotifyCB.get(c.getUuid());
                     if (cb != null) {
                         final byte[] payload = val.clone();
                         final double timestamp = Util.getNanoTime();
-                        Util.dispatchCb(new Runnable() {
-                            @Override
-                            public void run() {
-                                cb.onReceived(timestamp, payload);
-                            }
-                        });
+                        Util.dispatchCb(() -> cb.onReceived(timestamp, payload));
                     }
                 }
-                bleChangedCondition .ul();
+                bleChangedCondition.ul();
             }
+
             @Override
             public void onConnectionStateChange(BluetoothGatt g, int stat, int newState) {
-                Log.d(TAG, "GATTCB:CONN");
-                bleStateCondition   .l(stat);
+                Timber.d("GATTCB:CONN");
+                bleStateCondition.l(stat);
                 mConnectionState = newState;
-                switch(newState) {
+                switch (newState) {
                     case BluetoothProfile.STATE_DISCONNECTED:
-                        Log.d(TAG,"New state: Disconnected");
+                        Timber.d("New state: Disconnected");
                         mBluetoothGatt.close();
                         break;
                     case BluetoothProfile.STATE_CONNECTING:
-                        Log.d(TAG,"New state: Connecting");
+                        Timber.d("New state: Connecting");
                         break;
                     case BluetoothProfile.STATE_CONNECTED:
-                        Log.d(TAG,"New state: Connected");
+                        Timber.d("New state: Connected");
                         break;
                     case BluetoothProfile.STATE_DISCONNECTING:
-                        Log.d(TAG,"New state: Disconnecting");
+                        Timber.d("New state: Disconnecting");
                         break;
                 }
                 synchronized (mConnectionStateCB) {
                     List<Runnable> cbs = mConnectionStateCB.get(mConnectionState);
-                    for(Runnable cb : cbs) {
+                    for (Runnable cb : cbs) {
                         Util.dispatchCb(cb);
                     }
                 }
-                bleStateCondition   .sig();
-                bleStateCondition   .ul();
+                bleStateCondition.sig();
+                bleStateCondition.ul();
             }
         };
     }
 
-    public int addConnectionStateCB(int state,Runnable cb) {
+    public int addConnectionStateCB(int state, Runnable cb) {
         synchronized (mConnectionStateCB) {
             connectionStateCBHandle++;
             List<Runnable> l = mConnectionStateCB.get(state);
@@ -261,33 +308,33 @@ public class PeripheralWrapper {
     }
 
     public int connect() {
-        if( isConnected() || isConnecting()) {
-            Log.e(TAG,"Tried to connect a device that's already connecting/connected");
+        if (isConnected() || isConnecting()) {
+            Timber.e("Tried to connect a device that's already connecting/connected");
             return 0;
         }
 
         return protectedCall(new Interruptable() {
             @Override
             public Void call() throws InterruptedException {
-                if(BluetoothAdapter.getDefaultAdapter().isDiscovering()) {
-                    Log.e(TAG,"Trying to connect while the adapter is discovering!  Going to cancelDelayedCB discovery.");
+                if (BluetoothAdapter.getDefaultAdapter().isDiscovering()) {
+                    Timber.e("Trying to connect while the adapter is discovering!  Going to cancelDelayedCB discovery.");
                     BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
                 }
                 // Try to connect
-                Log.d(TAG,"CONNECTGATT");
-                mBluetoothGatt = mDevice.connectGatt(mContext.getApplicationContext(),false,mGattCallbacks);
+                Timber.d("CONNECTGATT");
+                mBluetoothGatt = mDevice.connectGatt(mContext.getApplicationContext(), false, mGattCallbacks);
                 refreshDeviceCache();
                 while (!isConnected()) {
                     //If we time out in connection or the connect routine returns an error
-                    if (bleStateCondition.awaitMilli(10000) ) {
-                        if(mBluetoothGatt!=null) {
+                    if (bleStateCondition.awaitMilli(10000)) {
+                        if (mBluetoothGatt != null) {
                             mBluetoothGatt.close();
                         }
                         mRval = -1;
                         return null;
                     }
                     if (bleStateCondition.stat != 0) {
-                        if(mBluetoothGatt!=null) {
+                        if (mBluetoothGatt != null) {
                             mBluetoothGatt.close();
                         }
                         mRval = bleStateCondition.stat;
@@ -300,7 +347,7 @@ public class PeripheralWrapper {
     }
 
     public int discover() {
-        if(!isConnected()) {
+        if (!isConnected()) {
             new Exception().printStackTrace();
             return -1;
         }
@@ -308,39 +355,39 @@ public class PeripheralWrapper {
             @Override
             public Void call() throws InterruptedException {
                 // Discover services
-                Log.d(TAG,"DISCOVER");
+                Timber.d("DISCOVER");
                 boolean success = false;
-                for(int i = 0; i < 20; i++) {
-                    if(mBluetoothGatt.discoverServices()) {
+                for (int i = 0; i < 20; i++) {
+                    if (mBluetoothGatt.discoverServices()) {
                         success = true;
                         break;
                     } else {
-                        Log.e(TAG, "Discover failed to start");
+                        Timber.e("Discover failed to start");
                         Util.delay(10);
                     }
                 }
-                if(!success) {
+                if (!success) {
                     mRval = -2;
                     return null;
                 }
-                if(bleDiscoverCondition.awaitMilli(10000)) {
+                if (bleDiscoverCondition.awaitMilli(10000)) {
                     //if(bleDiscoverCondition.await()) {
                     // Timed out
-                    Log.e(TAG,"Timed out on service discovery");
+                    Timber.e("Timed out on service discovery");
                     mRval = -1;
                 }
                 return null;
             }
         });
         // Build a local dictionary of all characteristics and their UUIDs
-        if(bleDiscoverCondition.stat == 0) {
+        if (bleDiscoverCondition.stat == 0) {
             for (BluetoothGattService s : mBluetoothGatt.getServices()) {
                 mServices.put(s.getUuid(), s);
                 for (BluetoothGattCharacteristic c : s.getCharacteristics()) {
                     mCharacteristics.put(c.getUuid(), c);
                 }
             }
-            Log.d(TAG,"Characteristic map has " + mCharacteristics.size() + " elements");
+            Timber.d("Characteristic map has " + mCharacteristics.size() + " elements");
         } else {
             // This is a shot in the dark trying to fix a longstanding Android BLE bug
             // After a failed discover (reason for failure unknown, code 129), the phone
@@ -348,25 +395,25 @@ public class PeripheralWrapper {
             // advertising and no longer appears in the scan list and the only way to disconnect
             // is to reboot the mooshimeter or the phone (cycling BLE doesn't help).
             //refreshDeviceCache();
-            Log.e(TAG, "Discover status: " + bleDiscoverCondition.stat);
+            Timber.e("Discover status: " + bleDiscoverCondition.stat);
         }
         return bleDiscoverCondition.stat;
     }
 
     public int disconnect() {
-        if(isDisconnected()) {
-            Log.d(TAG, "Disconnect called on peripheral that's already disconnected!");
+        if (isDisconnected()) {
+            Timber.d("Disconnect called on peripheral that's already disconnected!");
             return 0;
         }
         return protectedCall(new Interruptable() {
             @Override
             public Void call() throws InterruptedException {
-                Log.d(TAG, "DISCONNECT");
+                Timber.d("DISCONNECT");
                 mBluetoothGatt.disconnect();
                 while (mConnectionState != BluetoothProfile.STATE_DISCONNECTED) {
                     bleStateCondition.await();
                 }
-                Log.d(TAG, "CLOSE");
+                Timber.d("CLOSE");
                 mBluetoothGatt.close();
                 return null;
             }
@@ -378,10 +425,10 @@ public class PeripheralWrapper {
             @Override
             public Void call() throws InterruptedException {
                 if (isConnected()) {
-                    Log.d(TAG, "READRSSI");
+                    Timber.d("READRSSI");
                     mBluetoothGatt.readRemoteRssi();
-                    if(bleRSSICondition.awaitMilli(500)) {
-                        Log.e(TAG, "RSSI read timed out!");
+                    if (bleRSSICondition.awaitMilli(500)) {
+                        Timber.e("RSSI read timed out!");
                     }
                 }
                 return null;
@@ -391,22 +438,22 @@ public class PeripheralWrapper {
     }
 
     public byte[] req(UUID uuid) {
-        if(!isConnected()) {
-            Log.e(TAG,"Trying to read from a disconnected peripheral");
+        if (!isConnected()) {
+            Timber.e("Trying to read from a disconnected peripheral");
             new Exception().printStackTrace();
             return null;
         }
         final BluetoothGattCharacteristic c = getChar(uuid);
-        if(c==null) {
-            Log.e(TAG,"Couldn't find char for " + uuid.toString());
+        if (c == null) {
+            Timber.e("Couldn't find char for " + uuid.toString());
             return null;
         }
         protectedCall(new Interruptable() {
             @Override
             public Void call() throws InterruptedException {
-                Log.d(TAG,"READ");
+                Timber.d("READ");
                 mBluetoothGatt.readCharacteristic(c);
-                if(bleReadCondition.awaitMilli(1000)) {
+                if (bleReadCondition.awaitMilli(1000)) {
                     mRval = -1;
                 } else {
                     mRval = bleReadCondition.stat;
@@ -418,20 +465,20 @@ public class PeripheralWrapper {
     }
 
     public int send(final UUID uuid, final byte[] value) {
-        if(!isConnected()) {
-            Log.e(TAG,"Trying to send to a disconnected peripheral");
+        if (!isConnected()) {
+            Timber.e("Trying to send to a disconnected peripheral");
             new Exception().printStackTrace();
             return -1;
         }
         final BluetoothGattCharacteristic c = getChar(uuid);
-        if(c==null) {
-            Log.e(TAG, "Couldn't find write characteristic for "+uuid.toString());
+        if (c == null) {
+            Timber.e("Couldn't find write characteristic for " + uuid.toString());
             return -1;
         }
         return protectedCall(new Interruptable() {
             @Override
             public Void call() throws InterruptedException {
-                Log.d(TAG, "WRITE");
+                Timber.d("WRITE");
                 c.setValue(value);
                 mBluetoothGatt.writeCharacteristic(c);
                 if (bleWriteCondition.awaitMilli(1000)) {
@@ -449,14 +496,14 @@ public class PeripheralWrapper {
     }
 
     public boolean isNotificationEnabled(UUID uuid) {
-        if(!isConnected()) {
-            Log.e(TAG,"Trying to read notification on a disconnected peripheral");
+        if (!isConnected()) {
+            Timber.e("Trying to read notification on a disconnected peripheral");
             new Exception().printStackTrace();
             return false;
         }
         BluetoothGattCharacteristic c = getChar(uuid);
-        if(c == null) {
-            Log.e(TAG, "Asked for a characteristic that doesn't exist!");
+        if (c == null) {
+            Timber.e("Asked for a characteristic that doesn't exist!");
             return false;
         }
         final BluetoothGattDescriptor d = c.getDescriptor(CLIENT_CHARACTERISTIC_CONFIG);
@@ -464,7 +511,7 @@ public class PeripheralWrapper {
         return (dval == BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
     }
 
-    private Map<UUID,Boolean> notification_disable_preempted = new ConcurrentHashMap<UUID, Boolean>();
+    private Map<UUID, Boolean> notification_disable_preempted = new ConcurrentHashMap<>();
 
     private int enableNotifyDirect(final UUID uuid, final boolean enable) {
         final BluetoothGattCharacteristic c = getChar(uuid);
@@ -474,19 +521,19 @@ public class PeripheralWrapper {
                 // Only bother setting the notification if the status has changed
                 if (mBluetoothGatt.setCharacteristicNotification(c, enable)) {
                     final BluetoothGattDescriptor clientConfig = c.getDescriptor(CLIENT_CHARACTERISTIC_CONFIG);
-                    final byte[] enable_val = enable?BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE:BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE;
-                    while(!clientConfig.setValue(enable_val)) {
-                        Log.e(TAG, "setValue Fail!");
+                    final byte[] enable_val = enable ? BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE : BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE;
+                    while (!clientConfig.setValue(enable_val)) {
+                        Timber.e("setValue Fail!");
                     }
-                    Log.d(TAG, "DWRITE");
+                    Timber.d("DWRITE");
                     mBluetoothGatt.writeDescriptor(clientConfig);
-                    if(bleDWriteCondition.awaitMilli(3000)) {
-                        Log.e(TAG, "writeDescriptor timed out!");
+                    if (bleDWriteCondition.awaitMilli(3000)) {
+                        Timber.e("writeDescriptor timed out!");
                         mRval = -1;
                     } else {
                         mRval = bleDWriteCondition.stat;
-                        if(mRval != 0) {
-                            Log.e(TAG,"DWRITE RVAL "+mRval);
+                        if (mRval != 0) {
+                            Timber.e("DWRITE RVAL " + mRval);
                         }
                     }
                 } else {
@@ -498,36 +545,33 @@ public class PeripheralWrapper {
     }
 
     public int enableNotify(final UUID uuid, final boolean enable, final NotifyHandler on_notify) {
-        if(!isConnected()) {
-            Log.e(TAG,"Trying to set notification on a disconnected peripheral");
+        if (!isConnected()) {
+            Timber.e("Trying to set notification on a disconnected peripheral");
             new Exception().printStackTrace();
             return -1;
         }
         // Set up the notify callback
-        if(on_notify != null) {
+        if (on_notify != null) {
             mNotifyCB.put(uuid, on_notify);
         } else {
             mNotifyCB.remove(uuid);
         }
-        if(enable) {
-            notification_disable_preempted.put(uuid,Boolean.TRUE);
+        if (enable) {
+            notification_disable_preempted.put(uuid, Boolean.TRUE);
         }
-        if(isNotificationEnabled(uuid) != enable) {
-            if(enable) {
+        if (isNotificationEnabled(uuid) != enable) {
+            if (enable) {
                 // Enable immediately
-                enableNotifyDirect(uuid,true);
+                enableNotifyDirect(uuid, true);
             } else {
                 // Disable only after a delay
-                notification_disable_preempted.put(uuid,Boolean.FALSE);
-                Util.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        if(notification_disable_preempted.get(uuid).equals(Boolean.TRUE)) {
-                            // If the disable was preempted, don't disable
-                            return;
-                        }
-                        enableNotifyDirect(uuid, false);
+                notification_disable_preempted.put(uuid, Boolean.FALSE);
+                Util.postDelayed(() -> {
+                    if (notification_disable_preempted.get(uuid).equals(Boolean.TRUE)) {
+                        // If the disable was preempted, don't disable
+                        return;
                     }
+                    enableNotifyDirect(uuid, false);
                 }, 3000);
             }
         }
@@ -542,7 +586,7 @@ public class PeripheralWrapper {
         return mDevice;
     }
 
-    private boolean refreshDeviceCache(){
+    private boolean refreshDeviceCache() {
         // Forces the BluetoothGATT layer to dump what it knows about the connected device
         // If this is not called during connection, the GATT layer will simply return the last cached
         // services and refuse to do the service discovery process.
@@ -551,11 +595,10 @@ public class PeripheralWrapper {
             if (localMethod != null) {
                 return ((Boolean) localMethod.invoke(mBluetoothGatt));
             } else {
-                Log.e(TAG, "Unable to wipe the GATT Cache");
+                Timber.e("Unable to wipe the GATT Cache");
             }
-        }
-        catch (Exception localException) {
-            Log.e(TAG, "An exception occured while refreshing device");
+        } catch (Exception localException) {
+            Timber.e("An exception occured while refreshing device");
         }
         return false;
     }

@@ -21,7 +21,6 @@ package com.mooshim.mooshimeter.devices;
 
 
 import android.bluetooth.BluetoothGatt;
-import android.util.Log;
 
 import com.mooshim.mooshimeter.common.Chooser;
 import com.mooshim.mooshimeter.common.MeterReading;
@@ -34,6 +33,8 @@ import java.nio.ByteOrder;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import timber.log.Timber;
+
 public abstract class MooshimeterDeviceBase extends BLEDeviceBase implements MooshimeterControlInterface {
     ////////////////////////////////
     // Statics
@@ -41,53 +42,79 @@ public abstract class MooshimeterDeviceBase extends BLEDeviceBase implements Moo
 
 
     public static class RangeDescriptor {
-        public String name="";
-        public float max=0;
+        public String name = "";
+        public float max = 0;
+
         public String toString() {
             return name;
         }
     }
+
     public static class InputDescriptor {
         public String name;
         public Chooser<RangeDescriptor> ranges = new Chooser<>();
         public String units;
-        public InputDescriptor(String name,String units) {
-            this.name=name;
-            this.units=units;
+
+        public InputDescriptor(String name, String units) {
+            this.name = name;
+            this.units = units;
         }
+
         public InputDescriptor() {
-            this("","");
+            this("", "");
         }
+
         public String toString() {
             return name;
         }
     }
 
-    private static final String TAG="MooshimeterDeviceBase";
+    private static final String TAG = "MooshimeterDeviceBase";
 
     private static MooshimeterDelegate dummy_delegate = new MooshimeterDelegate() {
         @Override
-        public void onDisconnect() {        }
+        public void onDisconnect() {
+        }
+
         @Override
-        public void onRssiReceived(int rssi) {}
+        public void onRssiReceived(int rssi) {
+        }
+
         @Override
-        public void onBatteryVoltageReceived(float voltage) {}
+        public void onBatteryVoltageReceived(float voltage) {
+        }
+
         @Override
-        public void onSampleReceived(double timestamp_utc, Channel c, MeterReading val) {}
+        public void onSampleReceived(double timestamp_utc, Channel c, MeterReading val) {
+        }
+
         @Override
-        public void onBufferReceived(double timestamp_utc, Channel c, float dt, float[] val) {}
+        public void onBufferReceived(double timestamp_utc, Channel c, float dt, float[] val) {
+        }
+
         @Override
-        public void onSampleRateChanged(int i, int sample_rate_hz) {        }
+        public void onSampleRateChanged(int i, int sample_rate_hz) {
+        }
+
         @Override
-        public void onBufferDepthChanged(int i, int buffer_depth) {        }
+        public void onBufferDepthChanged(int i, int buffer_depth) {
+        }
+
         @Override
-        public void onLoggingStatusChanged(boolean on, int new_state, String message) {}
+        public void onLoggingStatusChanged(boolean on, int new_state, String message) {
+        }
+
         @Override
-        public void onRangeChange(Channel c, RangeDescriptor new_range) {        }
+        public void onRangeChange(Channel c, RangeDescriptor new_range) {
+        }
+
         @Override
-        public void onInputChange(Channel c, InputDescriptor descriptor) {        }
+        public void onInputChange(Channel c, InputDescriptor descriptor) {
+        }
+
         @Override
-        public void onOffsetChange(Channel c, MeterReading offset) { }
+        public void onOffsetChange(Channel c, MeterReading offset) {
+        }
     };
     public MooshimeterDelegate delegate = dummy_delegate;
 
@@ -99,7 +126,7 @@ public abstract class MooshimeterDeviceBase extends BLEDeviceBase implements Moo
     private final String rate_auto_key = "RATE_AUTO";
     private final String depth_auto_key = "DEPTH_AUTO";
 
-    public final Map<Channel,Boolean> speech_on = new ConcurrentHashMap<>();
+    public final Map<Channel, Boolean> speech_on = new ConcurrentHashMap<>();
 
     protected static void putInt24(ByteBuffer b, int arg) {
         // Puts the bottom 3 bytes of arg on to b
@@ -110,13 +137,18 @@ public abstract class MooshimeterDeviceBase extends BLEDeviceBase implements Moo
         tmp.get(tb);
         b.put(tb);
     }
-    protected static int  getInt24(ByteBuffer b) {
+
+    protected static int getInt24(ByteBuffer b) {
         // Pulls out a 3 byte int, expands it to 4 bytes
         // Advances the buffer by 3 bytes
         byte[] tb = new byte[4];
         b.get(tb, 0, 3);                   // Grab 3 bytes of the input
-        if(tb[2] < 0) {tb[3] = (byte)0xFF;}// Sign extend
-        else          {tb[3] = (byte)0x00;}
+        if (tb[2] < 0) {
+            tb[3] = (byte) 0xFF;
+        }// Sign extend
+        else {
+            tb[3] = (byte) 0x00;
+        }
         ByteBuffer tmp = ByteBuffer.wrap(tb);
         tmp.order(ByteOrder.LITTLE_ENDIAN);
         return tmp.getInt();
@@ -145,32 +177,25 @@ public abstract class MooshimeterDeviceBase extends BLEDeviceBase implements Moo
     @Override
     public int initialize() {
         super.initialize();
-        rssi_cb = new Runnable() {
-            @Override
-            public void run() {
-                delegate.onRssiReceived(getRSSI());
-            }
-        };
+        rssi_cb = () -> delegate.onRssiReceived(getRSSI());
 
-        disconnect_handle = mPwrap.addConnectionStateCB(BluetoothGatt.STATE_DISCONNECTED, new Runnable() {
-            @Override
-            public void run() {
-                mPwrap.cancelConnectionStateCB(disconnect_handle);
-                delegate.onDisconnect();
-            }
+        disconnect_handle = mPwrap.addConnectionStateCB(BluetoothGatt.STATE_DISCONNECTED, () -> {
+            mPwrap.cancelConnectionStateCB(disconnect_handle);
+            delegate.onDisconnect();
         });
         return 0;
     }
 
     abstract float getEnob(Channel c);
+
     abstract float getMaxRangeForChannel(Channel c);
 
-    protected MeterReading wrapMeterReading(Channel c,float val,boolean relative) {
+    protected MeterReading wrapMeterReading(Channel c, float val, boolean relative) {
         MooshimeterDeviceBase.InputDescriptor id = getSelectedDescriptor(c);
         final float enob = getEnob(c);
         float max = getMaxRangeForChannel(c);
         MeterReading rval;
-        if(id.units.equals("K")) {
+        if (id.units.equals("K")) {
             // Nobody likes Kelvin!  C or F?
             abstract class Converter {
                 abstract float convert(float val);
@@ -178,9 +203,9 @@ public abstract class MooshimeterDeviceBase extends BLEDeviceBase implements Moo
             Converter converter;
             String units;
 
-            if(Util.getPreferenceBoolean(Util.preference_keys.USE_FAHRENHEIT)) {
+            if (Util.getPreferenceBoolean(Util.preference_keys.USE_FAHRENHEIT)) {
                 units = "F";
-                if(relative) {
+                if (relative) {
                     converter = new Converter() {
                         @Override
                         float convert(float val) {
@@ -197,7 +222,7 @@ public abstract class MooshimeterDeviceBase extends BLEDeviceBase implements Moo
                 }
             } else {
                 units = "C";
-                if(relative) {
+                if (relative) {
                     converter = new Converter() {
                         @Override
                         float convert(float val) {
@@ -214,25 +239,25 @@ public abstract class MooshimeterDeviceBase extends BLEDeviceBase implements Moo
                 }
             }
             rval = new MeterReading(converter.convert(val),
-                                    (int)Math.log10(Math.pow(2.0, enob)),
-                                    converter.convert(max),
-                                    units);
+                    (int) Math.log10(Math.pow(2.0, enob)),
+                    converter.convert(max),
+                    units);
         } else {
             rval = new MeterReading(val,
-                                    (int)Math.log10(Math.pow(2.0, enob)),
-                                    max,
-                                    id.units);
+                    (int) Math.log10(Math.pow(2.0, enob)),
+                    max,
+                    id.units);
         }
         return rval;
     }
 
-    protected MeterReading wrapMeterReading(Channel c,float val) {
-        return wrapMeterReading(c,val,false);
+    protected MeterReading wrapMeterReading(Channel c, float val) {
+        return wrapMeterReading(c, val, false);
     }
 
     public boolean getRangeAuto(Channel c) {
         final String key;
-        switch(c) {
+        switch (c) {
             case CH1:
                 key = ch1_auto_key;
                 break;
@@ -240,16 +265,16 @@ public abstract class MooshimeterDeviceBase extends BLEDeviceBase implements Moo
                 key = ch2_auto_key;
                 break;
             default:
-                Log.e(TAG,"EGADS");
+                Timber.e("EGADS");
                 key = "";
                 break;
         }
-        return getPreference(key,true);
+        return getPreference(key, true);
     }
 
     public void setRangeAuto(Channel c, boolean b) {
         final String key;
-        switch(c) {
+        switch (c) {
             case CH1:
                 key = ch1_auto_key;
                 break;
@@ -257,24 +282,27 @@ public abstract class MooshimeterDeviceBase extends BLEDeviceBase implements Moo
                 key = ch2_auto_key;
                 break;
             default:
-                Log.e(TAG,"EGADS");
+                Timber.e("EGADS");
                 key = "";
                 break;
         }
-        setPreference(key,b);
+        setPreference(key, b);
     }
 
     public boolean getRateAuto() {
-        return  getPreference(rate_auto_key, true);
+        return getPreference(rate_auto_key, true);
     }
+
     public void setRateAuto(boolean arg) {
-        setPreference(rate_auto_key,arg);
+        setPreference(rate_auto_key, arg);
     }
+
     public boolean getDepthAuto() {
         return getPreference(depth_auto_key, true);
     }
+
     public void setDepthAuto(boolean arg) {
-        setPreference(depth_auto_key,arg);
+        setPreference(depth_auto_key, arg);
     }
 
     //////////////////////////////////////
@@ -284,6 +312,7 @@ public abstract class MooshimeterDeviceBase extends BLEDeviceBase implements Moo
     public void addDelegate(MooshimeterDelegate d) {
         delegate = d;
     }
+
     @Override
     public void removeDelegate() {
         delegate = dummy_delegate;

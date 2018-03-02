@@ -11,15 +11,12 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by First on 6/5/2016.
- */
 public class Alerter implements SharedPreferences.OnSharedPreferenceChangeListener {
     private static int bufferSize;
     private static final int duration = 1; // seconds
     private static final int sampleRate = 8000;
     private static final double freqOfTone = 800; // hz
-    private static final int samplesPerPeriod = (int)(sampleRate/freqOfTone);
+    private static final int samplesPerPeriod = (int) (sampleRate / freqOfTone);
     private static final short leadin = 10 * samplesPerPeriod;
     private static final short body = 300 * samplesPerPeriod;
     private static final short leadout = 10 * samplesPerPeriod;
@@ -31,7 +28,7 @@ public class Alerter implements SharedPreferences.OnSharedPreferenceChangeListen
     private static short[] sampBody = new short[body];
     private static short[] sampTail = new short[leadout];
 
-    private static final long[] vibratePattern = { 0, 50, 200, 50,};    // Pattern for Vibrator.vibrate()
+    private static final long[] vibratePattern = {0, 50, 200, 50,};    // Pattern for Vibrator.vibrate()
 
     private static boolean vibrate = false;
 
@@ -63,7 +60,7 @@ public class Alerter implements SharedPreferences.OnSharedPreferenceChangeListen
 
         // Attenuated outro
         for (short i = 0; i < leadout; ++i) {
-            float frac = (float) 1 -  (float)i/ leadout;
+            float frac = (float) 1 - (float) i / leadout;
             sampTail[i] = (short) (waveform(i) * frac);
         }
 
@@ -102,18 +99,13 @@ public class Alerter implements SharedPreferences.OnSharedPreferenceChangeListen
 
         // A way to schedule a call to stopAlerting() in the future
         executor = new ScheduledThreadPoolExecutor(1);
-        stopAlert = new Runnable() {
-            @Override
-            public void run() {
-                stopAlerting();
-            }
-        };
+        stopAlert = Alerter::stopAlerting;
 
         audioTrack.play();
     }
 
     private static void beep() {
-        if(audioTrack.getPlayState() != AudioTrack.PLAYSTATE_PLAYING) {
+        if (audioTrack.getPlayState() != AudioTrack.PLAYSTATE_PLAYING) {
 
             // On the initial play, we play including the attenuated lead-in
             // After that, we periodically feed in full periods of wave to get a continuous beep.

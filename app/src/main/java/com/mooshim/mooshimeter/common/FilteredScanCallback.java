@@ -2,7 +2,6 @@ package com.mooshim.mooshimeter.common;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.util.Log;
 
 import com.mooshim.mooshimeter.activities.BaseActivity;
 import com.mooshim.mooshimeter.devices.BLEDeviceBase;
@@ -11,9 +10,8 @@ import com.mooshim.mooshimeter.devices.PeripheralWrapper;
 import java.util.Arrays;
 import java.util.UUID;
 
-/**
- * Created by First on 7/3/2016.
- */
+import timber.log.Timber;
+
 public abstract class FilteredScanCallback implements BluetoothAdapter.LeScanCallback {
     public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] scanRecord) {
         // Filter devices
@@ -24,42 +22,45 @@ public abstract class FilteredScanCallback implements BluetoothAdapter.LeScanCal
         int build_time = 0;
         int field_length = 0;
         int field_id = 0;
-        for(int i = 0; i < scanRecord.length;) {
-            if(field_length == 0) {
+        for (int i = 0; i < scanRecord.length; ) {
+            if (field_length == 0) {
                 field_length = scanRecord[i] & 0xFF;
                 field_id = 0;
                 i++;
-            }
-            else if(field_id == 0) {
+            } else if (field_id == 0) {
                 field_id = scanRecord[i] & 0xFF;
                 field_length--;
                 i++;
             } else {
-                switch(field_id) {
+                switch (field_id) {
                     case 6:
                         // Type 6: This is a UUID listing
                         // Check expected length
-                        if(field_length != 16) { break; }
+                        if (field_length != 16) {
+                            break;
+                        }
                         // Check that there's enough data in the buffer
-                        if(i+field_length >= scanRecord.length) {break;}
+                        if (i + field_length >= scanRecord.length) {
+                            break;
+                        }
                         // Check the value against the expected service UUID
                         // Bytes are reversed in the scan record
                         byte[] uuid_reversed_bytes = Arrays.copyOfRange(scanRecord, i, i + field_length);
-                        for(int j = 0; j < 8; j++) {
-                            uuid_reversed_bytes[   j] ^= uuid_reversed_bytes[15-j];
-                            uuid_reversed_bytes[15-j] ^= uuid_reversed_bytes[   j];
-                            uuid_reversed_bytes[   j] ^= uuid_reversed_bytes[15-j];
+                        for (int j = 0; j < 8; j++) {
+                            uuid_reversed_bytes[j] ^= uuid_reversed_bytes[15 - j];
+                            uuid_reversed_bytes[15 - j] ^= uuid_reversed_bytes[j];
+                            uuid_reversed_bytes[j] ^= uuid_reversed_bytes[15 - j];
                         }
                         UUID received_uuid = Util.uuidFromBytes(uuid_reversed_bytes);
-                        if(received_uuid.equals(BLEDeviceBase.mServiceUUIDs.METER_SERVICE)) {
-                            Log.d(null, "Mooshimeter found");
+                        if (received_uuid.equals(BLEDeviceBase.mServiceUUIDs.METER_SERVICE)) {
+                            Timber.d("Mooshimeter found");
                             is_meter = true;
-                        } else if(received_uuid.equals(BLEDeviceBase.mServiceUUIDs.OAD_SERVICE_UUID)) {
-                            Log.d(null, "Mooshimeter found in OAD mode");
+                        } else if (received_uuid.equals(BLEDeviceBase.mServiceUUIDs.OAD_SERVICE_UUID)) {
+                            Timber.d("Mooshimeter found in OAD mode");
                             is_meter = true;
                             oad_mode = true;
                         } else {
-                            Log.d(null, "Scanned device is not a meter");
+                            Timber.d("Scanned device is not a meter");
                         }
                         break;
                     case 255:
@@ -67,11 +68,15 @@ public abstract class FilteredScanCallback implements BluetoothAdapter.LeScanCal
                         // In the case of the Mooshimeter this is the build time
                         // in UTC seconds
                         // Check expected length
-                        if(field_length != 4) { break; }
+                        if (field_length != 4) {
+                            break;
+                        }
                         // Check that there's enough data in the buffer
-                        if(i+field_length >= scanRecord.length) {break;}
-                        for(int j = 3; j >= 0; j--) {
-                            build_time |= (scanRecord[i+j] & 0xFF) << (8*j);
+                        if (i + field_length >= scanRecord.length) {
+                            break;
+                        }
+                        for (int j = 3; j >= 0; j--) {
+                            build_time |= (scanRecord[i + j] & 0xFF) << (8 * j);
                         }
                         break;
                 }
@@ -82,9 +87,9 @@ public abstract class FilteredScanCallback implements BluetoothAdapter.LeScanCal
             }
         }
 
-        if(is_meter) {
+        if (is_meter) {
             BLEDeviceBase m = BaseActivity.getDeviceWithAddress(device.getAddress());
-            if(m==null) {
+            if (m == null) {
                 PeripheralWrapper p = new PeripheralWrapper(device, Util.getRootContext());
                 m = new BLEDeviceBase(p);
                 BaseActivity.putDevice(m);
@@ -95,5 +100,6 @@ public abstract class FilteredScanCallback implements BluetoothAdapter.LeScanCal
             FilteredCallback(m);
         }
     }
+
     public abstract void FilteredCallback(final BLEDeviceBase m);
 }
