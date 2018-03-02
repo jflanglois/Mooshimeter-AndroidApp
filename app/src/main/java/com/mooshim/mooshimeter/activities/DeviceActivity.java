@@ -22,7 +22,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mooshim.mooshimeter.R;
-import com.mooshim.mooshimeter.common.BroadcastIntentData;
 import com.mooshim.mooshimeter.common.CooldownTimer;
 import com.mooshim.mooshimeter.common.MeterReading;
 import com.mooshim.mooshimeter.common.SpeaksOnLargeChange;
@@ -40,6 +39,7 @@ import timber.log.Timber;
 
 public class DeviceActivity extends BaseActivity implements MooshimeterDelegate {
     public static final String AUTORANGE = "AUTORANGE";
+
     private ActivityMeterBinding viewBinding;
     private ElementDeviceActivityTitlebarBinding titlebarBinding;
 
@@ -47,26 +47,18 @@ public class DeviceActivity extends BaseActivity implements MooshimeterDelegate 
         return MooshimeterControlInterface.Channel.values()[c];
     }
 
-
     // BLE
     private MooshimeterDeviceBase mMeter;
 
     // GUI
     private final TextView[] value_labels = new TextView[2];
-    private TextView power_label;
 
     private static final Button[] input_set_buttons = {null, null};
     private static final Button[] range_buttons = {null, null};
     private static final Button[] zero_buttons = {null, null};
     private static final Button[] sound_buttons = {null, null};
 
-    private Button rate_button;
-    private Button depth_button;
-    private Button logging_button;
-    private Button graph_button;
-    private Button power_button;
-
-    private float battery_voltage = 0;
+    private float batteryVoltage = 0;
 
     // GUI housekeeping
     private Drawable getAutoBG() {
@@ -80,7 +72,6 @@ public class DeviceActivity extends BaseActivity implements MooshimeterDelegate 
     // Helpers
     private CooldownTimer autorange_cooldown = new CooldownTimer();
     private SpeaksOnLargeChange speaksOnLargeChange = new SpeaksOnLargeChange();
-    private BroadcastIntentData broadcastIntentData = new BroadcastIntentData(); // added for broadcast intent
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -92,7 +83,6 @@ public class DeviceActivity extends BaseActivity implements MooshimeterDelegate 
         // Bind the GUI elements
         value_labels[0] = viewBinding.ch1ValueLabel;
         value_labels[1] = viewBinding.ch2ValueLabel;
-        power_label = viewBinding.powerLabel;
 
         input_set_buttons[0] = viewBinding.ch1InputSetButton;
         range_buttons[0] = viewBinding.ch1RangeButton;
@@ -103,12 +93,6 @@ public class DeviceActivity extends BaseActivity implements MooshimeterDelegate 
         range_buttons[1] = viewBinding.ch2RangeButton;
         zero_buttons[1] = viewBinding.ch2ZeroButton;
         sound_buttons[1] = viewBinding.ch2SoundButton;
-
-        rate_button = viewBinding.rateButton;
-        depth_button = viewBinding.depthButton;
-        logging_button = viewBinding.logButton;
-        graph_button = viewBinding.graphButton;
-        power_button = viewBinding.powerButton;
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -191,7 +175,7 @@ public class DeviceActivity extends BaseActivity implements MooshimeterDelegate 
     @Override
     protected void onStart() {
         super.onStart();
-        // For some reason, mMeter ends up null in lifecycle transistions sometimes
+        // For some reason, mMeter ends up null in lifecycle transitions sometimes
         // Double check here... still haven't figured this bug out.  FIXME
         Intent intent = getIntent();
         try {
@@ -228,7 +212,7 @@ public class DeviceActivity extends BaseActivity implements MooshimeterDelegate 
         });
     }
 
-    private void disableableButtonRefresh(Button b, String title, boolean en) {
+    private void disableButtonRefresh(Button b, String title, boolean en) {
         final Drawable bg = en ? getNormalBG() : getAutoBG();
         b.setText(title);
         b.setBackground(bg);
@@ -260,18 +244,18 @@ public class DeviceActivity extends BaseActivity implements MooshimeterDelegate 
 
     private void refreshTitle() {
         // Approximate remaining charge
-        double soc_percent = (battery_voltage - 2.0) * 100.0;
+        double soc_percent = (batteryVoltage - 2.0) * 100.0;
         soc_percent = Math.max(0, soc_percent);
         soc_percent = Math.min(100, soc_percent);
         final Drawable bat_img = getDrawableByURI("drawable/bat_icon_" + Integer.toString((int) soc_percent));
 
-        int rssi_val = mMeter.getRSSI();
+        int rssiVal = mMeter.getRSSI();
         // rssi is always negative, map it to a percentage.
         // Let's just make -100db be 0%, and 0db be 100%
-        rssi_val += 100;
-        rssi_val = Math.max(0, rssi_val);
-        rssi_val = Math.min(100, rssi_val);
-        final Drawable rssi_img = getDrawableByURI("drawable/sig_icon_" + Integer.toString(rssi_val));
+        rssiVal += 100;
+        rssiVal = Math.max(0, rssiVal);
+        rssiVal = Math.min(100, rssiVal);
+        final Drawable rssi_img = getDrawableByURI("drawable/sig_icon_" + Integer.toString(rssiVal));
 
         runOnUiThread(() -> {
             titlebarBinding.titleTextview.setText(mMeter.getBLEDevice().getName());
@@ -281,8 +265,8 @@ public class DeviceActivity extends BaseActivity implements MooshimeterDelegate 
     }
 
     private void mathLabelRefresh(final MeterReading val) {
-        Util.setText(power_label, val.toString());
-        Util.setText(power_button, mMeter.getSelectedDescriptor(MooshimeterControlInterface.Channel.MATH).name);
+        Util.setText(viewBinding.powerLabel, val.toString());
+        Util.setText(viewBinding.powerButton, mMeter.getSelectedDescriptor(MooshimeterControlInterface.Channel.MATH).name);
     }
 
     private void mathButtonRefresh() {
@@ -292,13 +276,13 @@ public class DeviceActivity extends BaseActivity implements MooshimeterDelegate 
     private void rateButtonRefresh() {
         int rate = mMeter.getSampleRateHz();
         String title = getString(R.string.rate_hz, rate);
-        autoButtonRefresh(rate_button, title, mMeter.getRateAuto());
+        autoButtonRefresh(viewBinding.rateButton, title, mMeter.getRateAuto());
     }
 
     private void depthButtonRefresh() {
         int depth = mMeter.getBufferDepth();
         String title = getString(R.string.depth_sample, depth);
-        autoButtonRefresh(depth_button, title, mMeter.getDepthAuto());
+        autoButtonRefresh(viewBinding.depthButton, title, mMeter.getDepthAuto());
     }
 
     private void loggingButtonRefresh() {
@@ -310,7 +294,7 @@ public class DeviceActivity extends BaseActivity implements MooshimeterDelegate 
         } else {
             title = mMeter.getLoggingStatusMessage();
         }
-        runOnUiThread(() -> disableableButtonRefresh(logging_button, title, logging_ok));
+        runOnUiThread(() -> disableButtonRefresh(viewBinding.logButton, title, logging_ok));
     }
 
     private void inputSetButtonRefresh(final int c) {
@@ -430,7 +414,7 @@ public class DeviceActivity extends BaseActivity implements MooshimeterDelegate 
         Timber.i("onRateClick");
         List<String> options = mMeter.getSampleRateList();
         options.add(0, AUTORANGE);
-        makePopupMenu(options, rate_button, new NotifyHandler() {
+        makePopupMenu(options, viewBinding.rateButton, new NotifyHandler() {
             @Override
             public void onReceived(double timestamp_utc, Object payload) {
                 popupMenu = null;
@@ -449,7 +433,7 @@ public class DeviceActivity extends BaseActivity implements MooshimeterDelegate 
         Timber.i("onDepthClick");
         List<String> options = mMeter.getBufferDepthList();
         options.add(0, AUTORANGE);
-        makePopupMenu(options, depth_button, new NotifyHandler() {
+        makePopupMenu(options, viewBinding.depthButton, new NotifyHandler() {
             @Override
             public void onReceived(double timestamp_utc, Object payload) {
                 popupMenu = null;
@@ -511,7 +495,7 @@ public class DeviceActivity extends BaseActivity implements MooshimeterDelegate 
         Timber.i("onPowerButtonClick");
         final List<MooshimeterDeviceBase.InputDescriptor> list = mMeter.getInputList(MooshimeterControlInterface.Channel.MATH);
         final List<String> slist = Util.stringifyCollection(list);
-        makePopupMenu(slist, power_button, new NotifyHandler() {
+        makePopupMenu(slist, viewBinding.powerButton, new NotifyHandler() {
             @Override
             public void onReceived(double timestamp_utc, Object payload) {
                 MooshimeterDeviceBase.InputDescriptor id = list.get((Integer) payload);
@@ -538,7 +522,7 @@ public class DeviceActivity extends BaseActivity implements MooshimeterDelegate 
 
     @Override
     public void onBatteryVoltageReceived(float voltage) {
-        battery_voltage = voltage;
+        batteryVoltage = voltage;
         refreshTitle();
     }
 

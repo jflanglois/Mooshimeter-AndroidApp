@@ -86,19 +86,19 @@ public class GraphSettingsView extends LinearLayout {
         Builder builder = new Builder();
         // Name
         builder.add("CH1 Autorange", makeSwitch(
-                mDelegate.dispModes[0] == GraphingActivity.ChDispModes.AUTO,
+                mDelegate.displayModes[0] == GraphingActivity.ChannelDisplayMode.AUTO,
                 new BooleanRunnable() {
                     @Override
                     public void run() {
-                        mDelegate.setDispModes(0, arg ? GraphingActivity.ChDispModes.AUTO : GraphingActivity.ChDispModes.MANUAL);
+                        mDelegate.setDisplayModes(0, arg ? GraphingActivity.ChannelDisplayMode.AUTO : GraphingActivity.ChannelDisplayMode.MANUAL);
                     }
                 }));
         builder.add("CH2 Autorange", makeSwitch(
-                mDelegate.dispModes[1] == GraphingActivity.ChDispModes.AUTO,
+                mDelegate.displayModes[1] == GraphingActivity.ChannelDisplayMode.AUTO,
                 new BooleanRunnable() {
                     @Override
                     public void run() {
-                        mDelegate.setDispModes(1, arg ? GraphingActivity.ChDispModes.AUTO : GraphingActivity.ChDispModes.MANUAL);
+                        mDelegate.setDisplayModes(1, arg ? GraphingActivity.ChannelDisplayMode.AUTO : GraphingActivity.ChannelDisplayMode.MANUAL);
                     }
                 }));
         builder.add("Autoscroll", makeSwitch(

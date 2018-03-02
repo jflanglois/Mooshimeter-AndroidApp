@@ -1,5 +1,7 @@
 package com.mooshim.mooshimeter.common;
 
+import android.support.annotation.NonNull;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -12,7 +14,6 @@ import timber.log.Timber;
 
 public class FirmwareFile {
     // Singleton resources for accessing the bundled firmware image
-    private static String TAG = "FirmwareFile";
     private static final int FILE_BUFFER_SIZE = 0x40000;
     public static final int OAD_BLOCK_SIZE = 16;
     public static final int OAD_BUFFER_SIZE = 2 + OAD_BLOCK_SIZE;
@@ -98,13 +99,15 @@ public class FirmwareFile {
         }
     }
 
-    public static FirmwareFile FirmwareFileFromURL(String url) {
+    @NonNull
+    public static FirmwareFile fromURL(@NonNull String url) {
         FirmwareFile rval = new FirmwareFile();
         rval.downloadFromURL(url);
         return rval;
     }
 
-    public static FirmwareFile FirmwareFileFromPath(String path) {
+    @NonNull
+    public static FirmwareFile fromPath(@NonNull String path) {
         FirmwareFile rval = new FirmwareFile();
         rval.loadFile(path);
         return rval;

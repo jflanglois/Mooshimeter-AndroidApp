@@ -1,10 +1,10 @@
 package com.mooshim.mooshimeter.activities;
 
-import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Point;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -45,8 +45,6 @@ public class GraphingActivity extends BaseActivity implements GraphingActivityIn
     // STATICS
     ///////////////////////
 
-    private static final String TAG = GraphingActivity.class.getSimpleName();
-
     private static int[] mColorList = {
             0xFFFF0000, // R
             0xFF0000FF, // B
@@ -56,7 +54,7 @@ public class GraphingActivity extends BaseActivity implements GraphingActivityIn
             0xFF888800, // R+G
     };
 
-    public enum ChDispModes {
+    public enum ChannelDisplayMode {
         OFF,
         MANUAL,
         AUTO,
@@ -85,9 +83,8 @@ public class GraphingActivity extends BaseActivity implements GraphingActivityIn
     // BEHAVIOR CONTROL
     ///////////////////////
 
-    final static int maxNumberOfPoints = 10000;
     int maxNumberOfPointsOnScreen = 50;
-    protected ChDispModes[] dispModes = new ChDispModes[]{ChDispModes.AUTO, ChDispModes.AUTO};
+    protected ChannelDisplayMode[] displayModes = new ChannelDisplayMode[]{ChannelDisplayMode.AUTO, ChannelDisplayMode.AUTO};
     protected boolean autoScrollOn = true;
     protected boolean xyModeOn = false;
     protected boolean bufferModeOn = false;
@@ -106,26 +103,26 @@ public class GraphingActivity extends BaseActivity implements GraphingActivityIn
     // HELPER CLASSES
     ///////////////////////
     private class PointArrayWrapper {
-        public List<PointValue> backing;
+        List<PointValue> backing;
         private Viewport util_vp = new Viewport();
 
-        public PointArrayWrapper() {
+        PointArrayWrapper() {
             this(new ArrayList<>());
         }
 
-        public PointArrayWrapper(List<PointValue> to_wrap) {
+        PointArrayWrapper(List<PointValue> to_wrap) {
             backing = to_wrap;
         }
 
-        public PointArrayWrapper getValuesInViewport(Viewport v) {
-            List<PointValue> rval = new ArrayList<>();
+        PointArrayWrapper getValuesInViewport(Viewport v) {
+            List<PointValue> results = new ArrayList<>();
             for (PointValue p : backing) {
                 if (p.getX() > v.left
                         && p.getX() < v.right) {
-                    rval.add(p);
+                    results.add(p);
                 }
             }
-            return new PointArrayWrapper(rval);
+            return new PointArrayWrapper(results);
         }
 
         private void minMaxProcessPoint(PointValue p) {
@@ -145,7 +142,7 @@ public class GraphingActivity extends BaseActivity implements GraphingActivityIn
             }
         }
 
-        public Viewport getBoundingViewport() {
+        Viewport getBoundingViewport() {
             util_vp.left = Float.MAX_VALUE;
             util_vp.bottom = Float.MAX_VALUE;
             util_vp.right = -Float.MAX_VALUE;
@@ -280,8 +277,10 @@ public class GraphingActivity extends BaseActivity implements GraphingActivityIn
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
         decorView.setSystemUiVisibility(uiOptions);
-        ActionBar actionBar = getActionBar();
-        actionBar.hide();
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.hide();
+        }
 
         final MooshimeterDelegate d = this;
 
@@ -329,37 +328,22 @@ public class GraphingActivity extends BaseActivity implements GraphingActivityIn
         mRefreshButton.setVisibility(on ? View.VISIBLE : View.GONE);
     }
 
-    boolean has_displayed_panzoom_message = false;
+    boolean hasDisplayedPanZoomMessage = false;
 
-    public void setDispModes(int channel, ChDispModes new_mode) {
-        mChart[channel].setZoomEnabled(new_mode != ChDispModes.AUTO);
-        if (!has_displayed_panzoom_message && new_mode != ChDispModes.AUTO) {
-            has_displayed_panzoom_message = true;
+    public void setDisplayModes(int channel, ChannelDisplayMode newMode) {
+        mChart[channel].setZoomEnabled(newMode != ChannelDisplayMode.AUTO);
+        if (!hasDisplayedPanZoomMessage && newMode != ChannelDisplayMode.AUTO) {
+            hasDisplayedPanZoomMessage = true;
             final Context c = this;
             runOnUiThread(() -> Toast.makeText(c, "Scroll and pinch the left side of the graph to adjust CH1 and the right side for CH2", Toast.LENGTH_LONG).show());
         }
-        dispModes[channel] = new_mode;
+        displayModes[channel] = newMode;
     }
 
     public void setAutoScrollOn(boolean autoScrollOn) {
         this.autoScrollOn = autoScrollOn;
         mChart[0].setContainerScrollEnabled(!autoScrollOn, ContainerScrollType.HORIZONTAL);
         mChart[1].setContainerScrollEnabled(!autoScrollOn, ContainerScrollType.HORIZONTAL);
-    }
-
-    public void setPlaying(boolean playing) {
-        this.playing = playing;
-        if (playing) {
-            mMeter.stream();
-            if (!autoScrollOn && !bufferModeOn) {
-                setAutoScrollOn(true);
-            }
-        } else {
-            mMeter.pause();
-            if (autoScrollOn && !bufferModeOn) {
-                setAutoScrollOn(false);
-            }
-        }
     }
 
     /////////////////////////
@@ -508,7 +492,7 @@ public class GraphingActivity extends BaseActivity implements GraphingActivityIn
                     }
                     present_vp.left = present_vp.right - window_width_t;
                     PointArrayWrapper onscreen;
-                    if (dispModes[i] == ChDispModes.OFF) {
+                    if (displayModes[i] == ChannelDisplayMode.OFF) {
                         // Feed in empty dataset if we don't want to display
                         onscreen = new PointArrayWrapper();
                     } else {
@@ -525,7 +509,7 @@ public class GraphingActivity extends BaseActivity implements GraphingActivityIn
                     if (range < 1) {
                         range = 1;
                     } // Range of zero causes meltdown
-                    switch (dispModes[i]) {
+                    switch (displayModes[i]) {
                         case AUTO:
                             present_vp.bottom = fitsTheData.bottom;
                             present_vp.top = fitsTheData.top;
@@ -584,7 +568,7 @@ public class GraphingActivity extends BaseActivity implements GraphingActivityIn
             });
         } catch (IndexOutOfBoundsException e) {
             e.printStackTrace();
-            Timber.e("No series found at index " + series_n);
+            Timber.e("No series found at index %s", series_n);
         }
     }
 
@@ -691,7 +675,7 @@ public class GraphingActivity extends BaseActivity implements GraphingActivityIn
             float scaledValue = rightToLeftHelper.invert(value);
             // WARNING: Due to a but in HelloCharts FloatUtil, trying to display too many digits causes
             // values to cap at INT_MAX.
-            // Try to display 6 sigfigs
+            // Try to display 6 significant figures
             int left_digits = (int)Math.log10((double)scaledValue);
             int right_digits = -1*(left_digits-6);
             right_digits = right_digits<0?0:right_digits;
