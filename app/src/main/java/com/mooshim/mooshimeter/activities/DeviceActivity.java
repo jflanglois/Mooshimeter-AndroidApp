@@ -38,8 +38,6 @@ import com.mooshim.mooshimeter.common.Util;
 
 import java.util.List;
 
-import me.grantland.widget.AutofitHelper;
-
 public class DeviceActivity extends MyActivity implements MooshimeterDelegate {
     private static final String TAG = "DeviceActivity";
     public static final String AUTORANGE = "AUTORANGE";
@@ -83,11 +81,7 @@ public class DeviceActivity extends MyActivity implements MooshimeterDelegate {
     private BroadcastIntentData broadcastIntentData = new BroadcastIntentData(); // added for broadcast intent
 
     private TextView findAndAutofit(int id) {
-        TextView rval = (TextView)findViewById(id);
-        AutofitHelper a = AutofitHelper.create(rval);
-        a.setMaxLines(1);
-        a.setEnabled(true);
-        return rval;
+        return (TextView)findViewById(id);
     }
 
     @Override
@@ -144,14 +138,12 @@ public class DeviceActivity extends MyActivity implements MooshimeterDelegate {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle presses on the action bar items
-		switch (item.getItemId()) {
-		case R.id.opt_prefs:
-            pushActivityToStack(mMeter,PreferencesActivity.class);
-			break;
-		default:
+        if (item.getItemId() == R.id.opt_prefs) {
+            pushActivityToStack(mMeter, PreferencesActivity.class);
+        } else {
             finish();
             return true;
-		}
+        }
 		return true;
 	}
 

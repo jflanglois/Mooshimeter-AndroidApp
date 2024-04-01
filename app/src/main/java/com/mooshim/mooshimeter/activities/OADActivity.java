@@ -71,8 +71,6 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.crashlytics.android.answers.Answers;
-import com.crashlytics.android.answers.CustomEvent;
 import com.mooshim.mooshimeter.R;
 import com.mooshim.mooshimeter.common.FilteredScanCallback;
 import com.mooshim.mooshimeter.common.FirmwareFile;

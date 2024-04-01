@@ -196,12 +196,10 @@ public class ScanActivity extends MyActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle presses on the action bar items
-        switch (item.getItemId()) {
-            case R.id.opt_prefs:
-                pushActivityToStack(null,GlobalPreferencesActivity.class);
-                break;
-            default:
-                return super.onOptionsItemSelected(item);
+        if (item.getItemId() == R.id.opt_prefs) {
+            pushActivityToStack(null, GlobalPreferencesActivity.class);
+        } else {
+            return super.onOptionsItemSelected(item);
         }
         return true;
     }
